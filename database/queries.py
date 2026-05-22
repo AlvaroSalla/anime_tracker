@@ -1,4 +1,4 @@
-from database.conexion import conectar, cerrar_conexion
+﻿from database.conexion import conectar, cerrar_conexion
 
 
 def _estado_segun_caps(caps_vistos, caps_totales, estado):
@@ -8,9 +8,7 @@ def _estado_segun_caps(caps_vistos, caps_totales, estado):
 
 
 def _estado_al_actualizar_caps(caps_vistos, caps_totales):
-    if caps_totales is None:
-        return None
-    if caps_vistos == caps_totales:
+    if caps_totales is not None and caps_vistos == caps_totales:
         return "Completo"
     return "En proceso"
 
@@ -81,6 +79,70 @@ def agregar_animes_api(animes):
     conn.commit()
     cerrar_conexion(conn)
 
+
+
+def obtener_animes_api_guardados(limite=1000):
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT
+                api_id,
+                nombre,
+                caps_totales,
+                imagen
+                FROM animes_api
+                ORDER BY nombre COLLATE NOCASE
+                LIMIT ?""", (limite,))
+    datos = cursor.fetchall()
+    cerrar_conexion(conn)
+
+    animes = []
+
+    for api_id, nombre, caps_totales, imagen in datos:
+        animes.append({
+            "id": api_id,
+            "title": {
+                "romaji": nombre
+            },
+            "episodes": caps_totales,
+            "coverImage": {
+                "medium": imagen
+            }
+        })
+
+    return animes
+
+
+def obtener_animes_usuario():
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT
+                user_animes.id,
+                animes_api.nombre,
+                user_animes.caps_vistos,
+                animes_api.caps_totales,
+                user_animes.estado,
+                user_animes.score,
+                animes_api.imagen
+                FROM user_animes
+                JOIN animes_api ON user_animes.anime_id = animes_api.id
+                ORDER BY animes_api.nombre COLLATE NOCASE""")
+    datos = cursor.fetchall()
+    cerrar_conexion(conn)
+
+    animes = []
+
+    for anime_id, nombre, vistos, totales, estado, score, imagen in datos:
+        animes.append({
+            "id": anime_id,
+            "nombre": nombre,
+            "caps_vistos": vistos,
+            "caps_totales": totales,
+            "estado": estado,
+            "score": score,
+            "imagen": imagen
+        })
+
+    return animes
 
 def obtener_anime_usuario(user_anime_id):
     conn = conectar()
@@ -192,3 +254,7 @@ def eliminar_anime_usuario(user_anime_id):
     cursor.execute("DELETE FROM user_animes WHERE id = ?", (user_anime_id,))
     conn.commit()
     cerrar_conexion(conn)
+
+
+
+

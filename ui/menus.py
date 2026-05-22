@@ -1,4 +1,4 @@
-from database.queries import (
+﻿from database.queries import (
     agregar_anime,
     actualizar_caps_anime,
     actualizar_estado_anime,
@@ -46,7 +46,10 @@ def menu_actualizar_anime():
 
 def pedir_estado_actualizable(caps_vistos_actuales, caps_totales):
     while True:
-        estado = pedir_estado()
+        estado = pedir_estado(permitir_volver=True)
+
+        if estado is None:
+            return None
 
         if (
             caps_totales is not None
@@ -72,6 +75,12 @@ def actualizar_anime():
 
     user_anime_id = anime_seleccionado[0]
     anime = obtener_anime_usuario(user_anime_id)
+
+    if anime is None:
+        print("No existe ese anime.")
+        pausar()
+        return
+
     _, nombre, caps_vistos_actuales, caps_totales, _, _ = anime
 
     while True:
@@ -85,7 +94,7 @@ def actualizar_anime():
 
                 if caps_cambiaron and caps_totales is not None and caps_vistos == caps_totales:
                     estado_actual = "Completo"
-                elif caps_cambiaron and caps_totales is not None:
+                elif caps_cambiaron:
                     estado_actual = "En proceso"
                 else:
                     estado_actual = None
@@ -102,6 +111,9 @@ def actualizar_anime():
                 pausar()
             case 2:
                 estado = pedir_estado_actualizable(caps_vistos_actuales, caps_totales)
+
+                if estado is None:
+                    continue
 
                 if estado == "Completo" and caps_totales is not None:
                     actualizar_estado_anime(user_anime_id, estado, caps_totales)
@@ -139,19 +151,24 @@ def ejecutar_menu():
         match opcion:
             case 1:
                 anime_elegido = elegir_anime_popular()
-                if anime_elegido == None:
-                    pausar()
+                if anime_elegido is None:
                     continue
+
+                api_id, nombre, caps, img = anime_elegido
+                estado = pedir_estado(permitir_volver=True)
+
+                if estado is None:
+                    continue
+
+                if estado == "Completo" and caps is not None:
+                    caps_vistos = caps
                 else:
-                    api_id, nombre, caps, img = anime_elegido
-                    estado = pedir_estado()
+                    caps_vistos = elegir_caps_vistos(caps, permitir_volver=True)
 
-                    if estado == "Completo" and caps is not None:
-                        caps_vistos = caps
-                    else:
-                        caps_vistos = pedir_caps_vistos(caps)
+                    if caps_vistos is None:
+                        continue
 
-                    agregar_anime(nombre, caps_vistos, caps, estado, 0, api_id, img)
+                agregar_anime(nombre, caps_vistos, caps, estado, 0, api_id, img)
             case 2:
                 if not mostrar_animes():
                     pausar()
@@ -162,3 +179,5 @@ def ejecutar_menu():
                 break
             case _:
                 print("error")
+
+

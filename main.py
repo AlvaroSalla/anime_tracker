@@ -1,6 +1,7 @@
-from database.setup import crear_tabla
-from ui.menus import ejecutar_menu
+﻿from database.setup import crear_tabla
+from gui.app import AnimeTrackerApp
 
-crear_tabla()
-ejecutar_menu()
-
+if __name__ == "__main__":
+    crear_tabla()
+    app = AnimeTrackerApp()
+    app.mainloop()

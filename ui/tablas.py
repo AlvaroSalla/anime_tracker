@@ -1,4 +1,4 @@
-from ui.prompts import seleccionar_menu, seleccionar_menu_filtrable
+﻿from ui.prompts import seleccionar_menu, seleccionar_menu_filtrable
 from database.conexion import (
     conectar,
     cerrar_conexion
@@ -46,9 +46,10 @@ def mostrar_resultados_animes_api_filtrable(animes):
         caps = _texto_caps(anime["episodes"])
         opciones.append(f"{nombre} - {caps} episodios")
 
+    opciones.append("Volver")
     opcion = seleccionar_menu_filtrable("=== RESULTADOS ===", opciones)
 
-    if opcion is None:
+    if opcion is None or opcion == len(opciones):
         return None
 
     anime_elegido = animes[opcion - 1]
@@ -112,5 +113,11 @@ def mostrar_animes():
 
     opciones = _opciones_animes_guardados(datos)
     opciones.append("Volver")
-    seleccionar_menu("=== ANIMES GUARDADOS ===", opciones)
-    return True
+
+    while True:
+        opcion = seleccionar_menu("=== ANIMES GUARDADOS ===", opciones)
+
+        if opcion == len(opciones):
+            return True
+
+
