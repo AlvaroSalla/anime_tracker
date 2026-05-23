@@ -129,7 +129,8 @@ def obtener_animes_usuario():
                 user_animes.estado,
                 user_animes.score,
                 animes_api.imagen,
-                animes_api.estado_api
+                animes_api.estado_api,
+                animes_api.api_id
                 FROM user_animes
                 JOIN animes_api ON user_animes.anime_id = animes_api.id
                 ORDER BY animes_api.nombre COLLATE NOCASE""")
@@ -138,7 +139,7 @@ def obtener_animes_usuario():
 
     animes = []
 
-    for anime_id, nombre, vistos, totales, estado, score, imagen, estado_api in datos:
+    for anime_id, nombre, vistos, totales, estado, score, imagen, estado_api, api_id in datos:
         animes.append({
             "id": anime_id,
             "nombre": nombre,
@@ -147,7 +148,8 @@ def obtener_animes_usuario():
             "estado": estado,
             "score": score,
             "imagen": imagen,
-            "estado_api": estado_api
+            "estado_api": estado_api,
+            "id_api": api_id
         })
 
     return animes
@@ -161,7 +163,8 @@ def obtener_anime_usuario(user_anime_id):
                 user_animes.caps_vistos,
                 animes_api.caps_totales,
                 user_animes.estado,
-                user_animes.score
+                user_animes.score,
+                animes_api.api_id
                 FROM user_animes
                 JOIN animes_api ON user_animes.anime_id = animes_api.id
                 WHERE user_animes.id = ?""", (user_anime_id,))

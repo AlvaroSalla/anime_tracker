@@ -908,6 +908,26 @@ class AnimeTrackerApp(ctk.CTk):
             self._update_saved_page_controls()
             return
 
+        sin_total = [a for a in page_items if a["caps_totales"] is None]
+        if sin_total:
+            ids = [str(a["id_api"]) for a in sin_total if a.get("id_api")]
+            if ids:
+                q = "query($ids:[Int]){Page(page:1,perPage:50){media(id_in:$ids,type:ANIME){id episodes nextAiringEpisode{episode}}}}"
+                ids_int = [a["id_api"] for a in sin_total if a.get("id_api")]
+                try:
+                    r = requests.post("https://graphql.anilist.co", json={"query": q, "variables": {"ids": ids_int}}, timeout=10)
+                    d = r.json()
+                    for media in d.get("data", {}).get("Page", {}).get("media", []):
+                        mid = media["id"]
+                        eps = media.get("episodes") or media.get("nextAiringEpisode", {}).get("episode")
+                        if eps:
+                            actuales = eps - 1 if media.get("nextAiringEpisode") and not media.get("episodes") else eps
+                            for a in sin_total:
+                                if a.get("id_api") == mid:
+                                    a["caps_totales"] = actuales
+                except Exception:
+                    pass
+
         for position, anime in enumerate(page_items):
             row = position // self.saved_columns
             column = position % self.saved_columns
@@ -1134,8 +1154,22 @@ class AnimeTrackerApp(ctk.CTk):
         form_frame.grid_columnconfigure(0, weight=1)
 
         caps_total_value = anime["caps_totales"]
-        caps_totales = caps_total_value if caps_total_value is not None else "?"
-        max_caps = caps_total_value if caps_total_value is not None else 100
+        caps_totales = str(caps_total_value) if caps_total_value is not None else "?"
+        max_caps = caps_total_value
+        if max_caps is None:
+            try:
+                q = "query($id:Int){Media(id:$id,type:ANIME){episodes nextAiringEpisode{episode}}}"
+                r = requests.post("https://graphql.anilist.co", json={"query": q, "variables": {"id": anime["id_api"]}}, timeout=8)
+                d = r.json()
+                m = d.get("data", {}).get("Media", {})
+                eps = m.get("episodes") or m.get("nextAiringEpisode", {}).get("episode")
+                if eps:
+                    max_caps = eps - 1 if m.get("nextAiringEpisode") and not m.get("episodes") else eps
+                    caps_totales = str(max_caps)
+            except Exception:
+                pass
+            if max_caps is None:
+                max_caps = 9999
         self.saved_caps_max = max_caps
         self.saved_caps_slice_size = 12
         self.saved_caps_slice_start = 0
@@ -1413,7 +1447,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         self._close_all_dropdowns()
 
-        max_val = self.saved_caps_max if self.saved_caps_max is not None else 100
+        max_val = self.saved_caps_max if self.saved_caps_max is not None else 9999
         values = list(range(0, max_val + 1))
 
         if not values:
@@ -2428,7 +2462,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         self._close_all_dropdowns()
 
-        max_val = self.add_caps_max if self.add_caps_max is not None else 100
+        max_val = self.add_caps_max if self.add_caps_max is not None else 9999
         values = list(range(0, max_val + 1))
 
         if not values:
@@ -2629,7 +2663,13 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         nombre = anime.get("title", {}).get("romaji", "Sin nombre")
-        caps_totales = anime.get("episodes")
+        caps_total = anime.get("episodes")
+        if caps_total is None:
+            next_airing = anime.get("nextAiringEpisode")
+            next_ep = next_airing.get("episode") if isinstance(next_airing, dict) else None
+            caps_totales = (next_ep - 1) if next_ep is not None else None
+        else:
+            caps_totales = caps_total
 
         if self._anime_already_saved(nombre):
             self.add_editor_message.configure(text="Ese anime ya esta guardado.")
