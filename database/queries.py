@@ -13,7 +13,7 @@ def _estado_al_actualizar_caps(caps_vistos, caps_totales):
     return "En proceso"
 
 
-def agregar_anime(nombre, vistos, totales, estado, score, api_id=None, imagen=None):
+def agregar_anime(nombre, vistos, totales, estado, score, api_id=None, imagen=None, estado_api=None):
     conn = conectar()
     cursor = conn.cursor()
     estado = _estado_segun_caps(vistos, totales, estado)
@@ -30,8 +30,9 @@ def agregar_anime(nombre, vistos, totales, estado, score, api_id=None, imagen=No
                     api_id,
                     nombre,
                     caps_totales,
-                    imagen)
-                    VALUES (?, ?, ?, ?)""", (api_id, nombre, totales, imagen))
+                    imagen,
+                    estado_api)
+                    VALUES (?, ?, ?, ?, ?)""", (api_id, nombre, totales, imagen, estado_api))
         anime_id = cursor.lastrowid
     else:
         anime_id = anime[0]
@@ -64,17 +65,20 @@ def agregar_animes_api(animes):
         nombre = anime["title"]["romaji"]
         caps_totales = anime["episodes"]
         imagen = anime["coverImage"]["medium"]
+        estado_api = anime.get("status")
 
         cursor.execute("""INSERT INTO animes_api (
                     api_id,
                     nombre,
                     caps_totales,
-                    imagen)
-                    VALUES (?, ?, ?, ?)
+                    imagen,
+                    estado_api)
+                    VALUES (?, ?, ?, ?, ?)
                     ON CONFLICT(api_id) DO UPDATE SET
                     nombre = excluded.nombre,
                     caps_totales = excluded.caps_totales,
-                    imagen = excluded.imagen""", (api_id, nombre, caps_totales, imagen))
+                    imagen = excluded.imagen,
+                    estado_api = excluded.estado_api""", (api_id, nombre, caps_totales, imagen, estado_api))
 
     conn.commit()
     cerrar_conexion(conn)
@@ -88,7 +92,8 @@ def obtener_animes_api_guardados(limite=1000):
                 api_id,
                 nombre,
                 caps_totales,
-                imagen
+                imagen,
+                estado_api
                 FROM animes_api
                 ORDER BY nombre COLLATE NOCASE
                 LIMIT ?""", (limite,))
@@ -97,13 +102,14 @@ def obtener_animes_api_guardados(limite=1000):
 
     animes = []
 
-    for api_id, nombre, caps_totales, imagen in datos:
+    for api_id, nombre, caps_totales, imagen, estado_api in datos:
         animes.append({
             "id": api_id,
             "title": {
                 "romaji": nombre
             },
             "episodes": caps_totales,
+            "status": estado_api,
             "coverImage": {
                 "medium": imagen
             }
@@ -122,7 +128,8 @@ def obtener_animes_usuario():
                 animes_api.caps_totales,
                 user_animes.estado,
                 user_animes.score,
-                animes_api.imagen
+                animes_api.imagen,
+                animes_api.estado_api
                 FROM user_animes
                 JOIN animes_api ON user_animes.anime_id = animes_api.id
                 ORDER BY animes_api.nombre COLLATE NOCASE""")
@@ -131,7 +138,7 @@ def obtener_animes_usuario():
 
     animes = []
 
-    for anime_id, nombre, vistos, totales, estado, score, imagen in datos:
+    for anime_id, nombre, vistos, totales, estado, score, imagen, estado_api in datos:
         animes.append({
             "id": anime_id,
             "nombre": nombre,
@@ -139,7 +146,8 @@ def obtener_animes_usuario():
             "caps_totales": totales,
             "estado": estado,
             "score": score,
-            "imagen": imagen
+            "imagen": imagen,
+            "estado_api": estado_api
         })
 
     return animes

@@ -73,6 +73,11 @@ def buscar_animes_api(busqueda, total=200):
                         romaji
                     }
                     episodes
+                    status
+                    nextAiringEpisode {
+                        episode
+                        airingAt
+                    }
                     coverImage {
                         medium
                     }
@@ -144,6 +149,11 @@ def mostrar_anime_popul(total=200):
                         romaji
                     }
                     episodes
+                    status
+                    nextAiringEpisode {
+                        episode
+                        airingAt
+                    }
                     coverImage {
                         medium
                     }

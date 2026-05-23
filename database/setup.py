@@ -19,8 +19,15 @@ def crear_tabla():
                 api_id INTEGER UNIQUE,
                 nombre TEXT NOT NULL,
                 caps_totales INTEGER,
-                imagen TEXT
+                imagen TEXT,
+                estado_api TEXT
             )""")
+
+    try:
+        cursor.execute("ALTER TABLE animes_api ADD COLUMN estado_api TEXT")
+    except Exception:
+        pass
+
     conn.commit()
     cerrar_conexion(conn)
 
