@@ -1058,11 +1058,16 @@ class AnimeTrackerApp(ctk.CTk):
 
         if is_switch:
             self._close_all_dropdowns()
-            old_panel = self.saved_editor_panel
             self._clear_saved_highlight()
+            old_panel = self.saved_editor_panel
             self._build_saved_panel(anime)
-            if old_panel is not None and old_panel.winfo_exists():
-                old_panel.destroy()
+            if old_panel is not None:
+                try:
+                    if old_panel.winfo_exists():
+                        old_panel.grid_forget()
+                        old_panel.destroy()
+                except tk.TclError:
+                    pass
             self._apply_saved_highlight()
             return
 
@@ -1248,6 +1253,7 @@ class AnimeTrackerApp(ctk.CTk):
             anchor="center",
             font=ctk.CTkFont(family=self.font_family, size=13, weight="bold")
         )
+        estado_label.grid(row=2, column=0, sticky="w", pady=(0, 6))
         saved_estado_border = tk.Frame(
             form_frame,
             height=50,
@@ -1275,7 +1281,8 @@ class AnimeTrackerApp(ctk.CTk):
             justify="left"
         )
         self.saved_estado_entry.grid(row=0, column=0, sticky="ew", padx=(4, 0))
-        self.saved_estado_entry.insert(0, anime["estado"])
+        saved_estado_value = anime.get("estado") or "Planeado"
+        self.saved_estado_entry.insert(0, saved_estado_value)
         self.saved_estado_entry.configure(state="readonly")
 
         saved_estado_arrow_btn = ctk.CTkButton(
@@ -2070,15 +2077,15 @@ class AnimeTrackerApp(ctk.CTk):
         if is_switch:
             self._close_all_dropdowns()
             self._clear_add_highlight()
-            if self.add_editor_panel is not None:
+            old_panel = self.add_editor_panel
+            self._build_add_panel(anime)
+            if old_panel is not None:
                 try:
-                    if self.add_editor_panel.winfo_exists():
-                        self.add_editor_panel.grid_forget()
-                        self.add_editor_panel.destroy()
+                    if old_panel.winfo_exists():
+                        old_panel.grid_forget()
+                        old_panel.destroy()
                 except tk.TclError:
                     pass
-                self.add_editor_panel = None
-            self._build_add_panel(anime)
             self._apply_add_highlight()
             return
 

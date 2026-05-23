@@ -1,0 +1,8 @@
+open_saved panel=False open=False
+panel opened for 22
+open_saved panel=True open=True
+panel closed
+open_saved panel=False open=False
+panel opened for 22
+open_saved panel=True open=True
+panel closed
