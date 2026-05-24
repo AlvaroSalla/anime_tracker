@@ -1,7 +1,9 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
 from pathlib import Path
 import math
 import threading
+import time
 import tkinter as tk
 
 import customtkinter as ctk
@@ -15,7 +17,11 @@ from database.queries import (
     actualizar_score_anime,
     obtener_animes_usuario,
 )
-from services.anime_services import obtener_animes_populares
+from services.anime_services import (
+    ANIMES_POPULARES_TOTAL,
+    obtener_animes_populares,
+    sincronizar_animes_populares_background,
+)
 
 
 class AnimeTrackerApp(ctk.CTk):
@@ -32,6 +38,9 @@ class AnimeTrackerApp(ctk.CTk):
         self.font_family = "Montserrat"
         self.icon_path = Path(__file__).resolve().parent.parent / "icon.ico"
         self.image_cache = {}
+        self.image_cache_lock = threading.Lock()
+        self.initial_image_preload_count = 500
+        self.background_image_preload_delay = 0.08
         self.current_view = "loading"
         self._page_info_text = ""
         self.preloaded_anime_items = []
@@ -790,15 +799,105 @@ class AnimeTrackerApp(ctk.CTk):
         )
         progress.grid(row=2, column=0)
         progress.start()
+
+        self.loading_status_label = ctk.CTkLabel(
+            loading_frame,
+            text="Preparando catalogo...",
+            text_color="#64748b",
+            font=ctk.CTkFont(family=self.font_family, size=12, weight="bold")
+        )
+        self.loading_status_label.grid(row=3, column=0, pady=(14, 0))
         self._transparent_widget_backgrounds(self.content_frame)
 
     def _preload_anime_items(self):
-        animes = obtener_animes_populares(1000)
+        self._set_loading_status("Cargando datos de AniList...")
+        animes = obtener_animes_populares(ANIMES_POPULARES_TOTAL)
+        first_batch = animes[:self.initial_image_preload_count]
+        self._set_loading_status(f"Precargando portadas 1-{len(first_batch)}...")
+        self._preload_anime_images(first_batch, max_workers=12)
         self.after(0, lambda: self._finish_preload(animes))
 
     def _finish_preload(self, animes):
         self.preloaded_anime_items = animes
         self.show_main_view()
+        if len(animes) < ANIMES_POPULARES_TOTAL:
+            sincronizar_animes_populares_background(ANIMES_POPULARES_TOTAL)
+        remaining = animes[self.initial_image_preload_count:]
+        if remaining:
+            threading.Thread(
+                target=self._preload_remaining_anime_images,
+                args=(remaining,),
+                daemon=True
+            ).start()
+
+    def _set_loading_status(self, text):
+        def update_label():
+            label = getattr(self, "loading_status_label", None)
+            if label is not None and label.winfo_exists():
+                label.configure(text=text)
+
+        try:
+            self.after(0, update_label)
+        except tk.TclError:
+            pass
+
+    def _anime_cover_url(self, anime):
+        cover = anime.get("coverImage") if isinstance(anime, dict) else None
+        if isinstance(cover, dict):
+            return cover.get("medium")
+        return anime.get("imagen") if isinstance(anime, dict) else None
+
+    def _cache_image_from_url(self, image_url, timeout=8):
+        if not image_url:
+            return False
+
+        with self.image_cache_lock:
+            if image_url in self.image_cache:
+                return True
+
+        try:
+            response = requests.get(image_url, timeout=timeout)
+            response.raise_for_status()
+            image = Image.open(BytesIO(response.content)).convert("RGB")
+        except (requests.RequestException, OSError):
+            return False
+
+        with self.image_cache_lock:
+            self.image_cache.setdefault(image_url, image)
+        return True
+
+    def _preload_anime_images(self, animes, max_workers=8):
+        urls = []
+        seen = set()
+
+        for anime in animes:
+            image_url = self._anime_cover_url(anime)
+            if image_url and image_url not in seen:
+                seen.add(image_url)
+                urls.append(image_url)
+
+        if not urls:
+            return
+
+        loaded = 0
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(self._cache_image_from_url, url, 8) for url in urls]
+
+            for future in as_completed(futures):
+                loaded += 1
+                if loaded % 25 == 0 or loaded == len(urls):
+                    self._set_loading_status(f"Precargando portadas {loaded}/{len(urls)}...")
+
+                try:
+                    future.result()
+                except Exception:
+                    pass
+
+    def _preload_remaining_anime_images(self, animes):
+        for anime in animes:
+            image_url = self._anime_cover_url(anime)
+            self._cache_image_from_url(image_url, timeout=8)
+            time.sleep(self.background_image_preload_delay)
 
     def show_main_view(self):
         self.current_view = "main"
@@ -2965,7 +3064,8 @@ class AnimeTrackerApp(ctk.CTk):
         return f"{name[:max_length - 3].rstrip()}..."
 
     def _load_card_image(self, image_url, image_label, size=(118, 166)):
-        cached_image = self.image_cache.get(image_url)
+        with self.image_cache_lock:
+            cached_image = self.image_cache.get(image_url)
 
         if cached_image is not None:
             self._set_card_image(image_label, image_url, cached_image, size)
@@ -2986,7 +3086,8 @@ class AnimeTrackerApp(ctk.CTk):
             self.after(0, lambda: self._set_missing_image(image_label, image_url))
             return
 
-        self.image_cache[image_url] = image
+        with self.image_cache_lock:
+            self.image_cache[image_url] = image
         self.after(0, lambda: self._set_card_image(image_label, image_url, image, size))
 
     def _set_card_image(self, image_label, image_url, pil_image, size):
