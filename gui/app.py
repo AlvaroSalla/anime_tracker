@@ -15,6 +15,7 @@ from database.queries import (
     actualizar_caps_anime,
     actualizar_estado_anime,
     actualizar_score_anime,
+    eliminar_anime_usuario,
     obtener_animes_usuario,
 )
 from services.anime_services import (
@@ -1232,7 +1233,7 @@ class AnimeTrackerApp(ctk.CTk):
         score_label = ctk.CTkLabel(
             footer_frame,
             text=f"Score: {anime['score']}",
-            text_color="#94a3b8",
+            text_color="#fbbf24",
             font=ctk.CTkFont(family=self.font_family, size=13, weight="bold")
         )
         score_label.grid(row=0, column=1, sticky="e")
@@ -1570,8 +1571,13 @@ class AnimeTrackerApp(ctk.CTk):
         )
         self.saved_editor_message.grid(row=6, column=0, sticky="ew", pady=(0, 10))
 
+        action_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
+        action_frame.grid(row=7, column=0, sticky="ew")
+        action_frame.grid_columnconfigure(0, weight=1)
+        action_frame.grid_columnconfigure(1, weight=1)
+
         save_button = ctk.CTkButton(
-            form_frame,
+            action_frame,
             text="Guardar cambios",
             height=44,
             fg_color="#2563eb",
@@ -1580,7 +1586,19 @@ class AnimeTrackerApp(ctk.CTk):
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             command=lambda: self._save_saved_anime_changes(anime)
         )
-        save_button.grid(row=7, column=0, sticky="ew")
+        save_button.grid(row=0, column=0, sticky="ew", padx=(0, 6))
+
+        delete_button = ctk.CTkButton(
+            action_frame,
+            text="Eliminar",
+            height=44,
+            fg_color="#dc2626",
+            hover_color="#b91c1c",
+            text_color="#ffffff",
+            font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
+            command=lambda: self._delete_saved_anime(anime)
+        )
+        delete_button.grid(row=0, column=1, sticky="ew", padx=(6, 0))
 
         self.saved_editor_panel.configure(width=430)
         self._style_scroll_background(self.saved_grid)
@@ -1883,6 +1901,11 @@ class AnimeTrackerApp(ctk.CTk):
             actualizar_estado_anime(anime["id"], estado)
 
         actualizar_score_anime(anime["id"], score)
+        self._close_saved_editor(animated=False)
+        self._reload_saved_items()
+
+    def _delete_saved_anime(self, anime):
+        eliminar_anime_usuario(anime["id"])
         self._close_saved_editor(animated=False)
         self._reload_saved_items()
 
