@@ -54,6 +54,8 @@ class AnimeTrackerApp(ctk.CTk):
         self.saved_editor_panel = None
         self.saved_editor_open = False
         self._main_cards = []
+        self._editor_animation_job = None
+        self._editor_animation_token = 0
 
         # Navigation state for canvas-drawn buttons (Anterior/Siguiente)
         self._nav_prev_enabled = False
@@ -161,6 +163,8 @@ class AnimeTrackerApp(ctk.CTk):
         
     def _cancel_all_after_callbacks(self):
         """Cancel all pending after callbacks to prevent Tcl errors on exit"""
+        self._cancel_editor_animation()
+
         # Cancel search after callbacks
         if hasattr(self, 'search_after_id') and self.search_after_id is not None:
             try:
@@ -228,6 +232,8 @@ class AnimeTrackerApp(ctk.CTk):
                 continue
             widget.destroy()
     def _clear_view(self):
+        self._cancel_editor_animation()
+
         if self.search_after_id is not None:
             self.after_cancel(self.search_after_id)
             self.search_after_id = None
@@ -264,6 +270,99 @@ class AnimeTrackerApp(ctk.CTk):
         self.current_anime_cards = []
         self.anime_card_slots = []
         self._main_cards.clear()
+
+    def _cancel_editor_animation(self):
+        self._editor_animation_token += 1
+
+        if self._editor_animation_job is not None:
+            try:
+                self.after_cancel(self._editor_animation_job)
+            except (ValueError, tk.TclError):
+                pass
+            self._editor_animation_job = None
+
+    def _ease_out_cubic(self, progress):
+        return 1 - pow(1 - progress, 3)
+
+    def _animate_editor_transition(self, view, opening, on_complete=None):
+        if view == "add":
+            grid = getattr(self, "anime_scroll", None)
+            frame = getattr(self, "add_frame", None)
+            panel = getattr(self, "add_editor_panel", None)
+            panel_width = 430
+            compact_grid_width = 740
+            side_width = 448
+            column_count = 6
+        else:
+            grid = getattr(self, "saved_grid", None)
+            frame = getattr(self, "saved_frame", None)
+            panel = getattr(self, "saved_editor_panel", None)
+            panel_width = 430
+            compact_grid_width = 740
+            side_width = 448
+            column_count = 3
+
+        if grid is None or frame is None or not grid.winfo_exists():
+            if on_complete is not None:
+                on_complete()
+            return
+
+        self._cancel_editor_animation()
+        token = self._editor_animation_token
+        frames = 12
+        delay = 12
+
+        start_panel = 1 if opening else panel_width
+        end_panel = panel_width if opening else 1
+
+        try:
+            grid.configure(width=compact_grid_width)
+            frame.grid_columnconfigure(1, minsize=side_width)
+        except (ValueError, tk.TclError):
+            if on_complete is not None:
+                on_complete()
+            return
+
+        if panel is not None and panel.winfo_exists():
+            try:
+                panel.configure(width=start_panel)
+            except (ValueError, tk.TclError, AttributeError):
+                pass
+
+        def step(index=0):
+            if token != self._editor_animation_token:
+                return
+
+            progress = self._ease_out_cubic(index / frames)
+            current_panel_width = round(start_panel + (end_panel - start_panel) * progress)
+
+            try:
+                if panel is not None and panel.winfo_exists():
+                    panel.configure(width=max(1, current_panel_width))
+            except (ValueError, tk.TclError):
+                return
+
+            if index < frames:
+                self._editor_animation_job = self.after(delay, lambda: step(index + 1))
+                return
+
+            self._editor_animation_job = None
+            frame.grid_columnconfigure(1, minsize=side_width)
+            grid.configure(width=compact_grid_width)
+            if panel is not None and panel.winfo_exists():
+                panel.configure(width=end_panel)
+
+            for column in range(column_count):
+                if view == "add":
+                    weight = 1 if column < self.anime_columns else 0
+                else:
+                    weight = 1 if column < self.saved_columns else 0
+                grid.grid_columnconfigure(column, weight=weight)
+
+            if on_complete is not None:
+                on_complete()
+
+        step()
 
     def _attach_view_background(self, frame):
         frame.configure(fg_color=self.background_color)
@@ -1057,6 +1156,7 @@ class AnimeTrackerApp(ctk.CTk):
         is_switch = self.saved_editor_open or self.saved_editor_panel is not None
 
         if is_switch:
+            self._cancel_editor_animation()
             self._close_all_dropdowns()
             self._clear_saved_highlight()
             old_panel = self.saved_editor_panel
@@ -1072,8 +1172,9 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         self._close_saved_editor(reset_grid=False)
-        self._set_saved_editor_layout(True, rerender=True)
+        self._set_saved_editor_layout(True, rerender=True, animated=True)
         self._build_saved_panel(anime)
+        self._animate_editor_transition("saved", True)
         self._apply_saved_highlight()
 
     def _build_saved_panel(self, anime):
@@ -1402,15 +1503,20 @@ class AnimeTrackerApp(ctk.CTk):
         self.update_idletasks()
         self._render_saved_page()
 
-    def _set_saved_editor_layout(self, editor_open, rerender=True):
+    def _set_saved_editor_layout(self, editor_open, rerender=True, animated=False):
         if not hasattr(self, "saved_grid") or not self.saved_grid.winfo_exists():
             return
 
         self.saved_editor_open = editor_open
         self.saved_columns = 2 if editor_open else 3
         self.saved_page_size = 8 if editor_open else 9
-        self.saved_grid.configure(width=740 if editor_open else 1138)
-        self.saved_frame.grid_columnconfigure(1, minsize=448 if editor_open else 0)
+
+        if animated:
+            self.saved_grid.configure(width=740)
+            self.saved_frame.grid_columnconfigure(1, minsize=448)
+        else:
+            self.saved_grid.configure(width=740 if editor_open else 1138)
+            self.saved_frame.grid_columnconfigure(1, minsize=448 if editor_open else 0)
 
         for column in range(3):
             weight = 1 if column < self.saved_columns else 0
@@ -1678,7 +1784,7 @@ class AnimeTrackerApp(ctk.CTk):
             actualizar_estado_anime(anime["id"], estado)
 
         actualizar_score_anime(anime["id"], score)
-        self._close_saved_editor()
+        self._close_saved_editor(animated=False)
         self._reload_saved_items()
 
     def _reload_saved_items(self):
@@ -1700,15 +1806,51 @@ class AnimeTrackerApp(ctk.CTk):
 
         self._render_saved_page()
 
-    def _close_saved_editor(self, reset_grid=True):
+    def _close_saved_editor(self, reset_grid=True, animated=True):
         self._close_all_dropdowns()
         self._clear_saved_highlight()
 
-        if self.saved_editor_panel is not None:
+        panel = self.saved_editor_panel
+
+        def finish_close():
+            if panel is not None:
+                try:
+                    if panel.winfo_exists():
+                        panel.grid_forget()
+                        panel.destroy()
+                except tk.TclError:
+                    pass
+
+            self.saved_editor_panel = None
+            self.saved_editor_open = False
+            self.update_idletasks()
+
+            if hasattr(self, "saved_grid") and self.saved_grid.winfo_exists():
+                for widget in self.saved_grid.winfo_children():
+                    widget.destroy()
+                if reset_grid:
+                    try:
+                        if self.saved_grid.winfo_exists():
+                            self._set_saved_editor_layout(False, rerender=True, animated=False)
+                            self.update_idletasks()
+                            return
+                    except tk.TclError:
+                        pass
+
+            self.update_idletasks()
+
+        if animated and reset_grid and panel is not None:
+            self.saved_editor_open = False
+            self.saved_columns = 3
+            self.saved_page_size = 9
+            self._animate_editor_transition("saved", False, finish_close)
+            return
+
+        if panel is not None:
             try:
-                if self.saved_editor_panel.winfo_exists():
-                    self.saved_editor_panel.grid_forget()
-                    self.saved_editor_panel.destroy()
+                if panel.winfo_exists():
+                    panel.grid_forget()
+                    panel.destroy()
             except tk.TclError:
                 pass
 
@@ -2075,6 +2217,7 @@ class AnimeTrackerApp(ctk.CTk):
         is_switch = self.add_editor_open or self.add_editor_panel is not None
 
         if is_switch:
+            self._cancel_editor_animation()
             self._close_all_dropdowns()
             self._clear_add_highlight()
             old_panel = self.add_editor_panel
@@ -2090,8 +2233,9 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         self._close_add_panel(reset_grid=False)
-        self._set_add_editor_layout(True, rerender=True)
+        self._set_add_editor_layout(True, rerender=True, animated=True)
         self._build_add_panel(anime)
+        self._animate_editor_transition("add", True)
         self._apply_add_highlight()
 
     def _build_add_panel(self, anime):
@@ -2415,15 +2559,20 @@ class AnimeTrackerApp(ctk.CTk):
                     pass
                 break
 
-    def _set_add_editor_layout(self, editor_open, rerender=True):
+    def _set_add_editor_layout(self, editor_open, rerender=True, animated=False):
         if not hasattr(self, "anime_scroll") or not self.anime_scroll.winfo_exists():
             return
 
         self.add_editor_open = editor_open
         self.anime_columns = 4 if editor_open else 6
         self.anime_page_size = 32 if editor_open else 50
-        self.anime_scroll.configure(width=740 if editor_open else 1138)
-        self.add_frame.grid_columnconfigure(1, minsize=448 if editor_open else 0)
+
+        if animated:
+            self.anime_scroll.configure(width=740)
+            self.add_frame.grid_columnconfigure(1, minsize=448)
+        else:
+            self.anime_scroll.configure(width=740 if editor_open else 1138)
+            self.add_frame.grid_columnconfigure(1, minsize=448 if editor_open else 0)
 
         for column in range(6):
             weight = 1 if column < self.anime_columns else 0
@@ -2711,7 +2860,7 @@ class AnimeTrackerApp(ctk.CTk):
     def _anime_already_saved(self, nombre):
         return any(anime["nombre"] == nombre for anime in obtener_animes_usuario())
 
-    def _close_add_panel(self, reset_grid=True):
+    def _close_add_panel(self, reset_grid=True, animated=True):
         self._close_all_dropdowns()
 
         try:
@@ -2719,11 +2868,49 @@ class AnimeTrackerApp(ctk.CTk):
         except Exception:
             pass
 
-        if self.add_editor_panel is not None:
+        panel = self.add_editor_panel
+
+        def finish_close():
+            if panel is not None:
+                try:
+                    if panel.winfo_exists():
+                        panel.grid_forget()
+                        panel.destroy()
+                except tk.TclError:
+                    pass
+
+            self.add_editor_panel = None
+            self.add_editor_open = False
+            self.update_idletasks()
+
             try:
-                if self.add_editor_panel.winfo_exists():
-                    self.add_editor_panel.grid_forget()
-                    self.add_editor_panel.destroy()
+                self._hide_all_anime_slots()
+            except Exception:
+                pass
+
+            if reset_grid:
+                try:
+                    if hasattr(self, "anime_scroll") and self.anime_scroll.winfo_exists():
+                        self._set_add_editor_layout(False, rerender=True, animated=False)
+                        self.update_idletasks()
+                        return
+                except Exception:
+                    pass
+
+            self.update_idletasks()
+
+        if animated and reset_grid and panel is not None:
+            self.add_editor_open = False
+            self.anime_columns = 6
+            self.anime_page_size = 50
+            self._animate_editor_transition("add", False, finish_close)
+            return
+
+        if panel is not None:
+            try:
+                if panel.winfo_exists():
+                    panel.grid_forget()
+                    panel.destroy()
             except tk.TclError:
                 pass
 
