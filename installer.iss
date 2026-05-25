@@ -1,0 +1,66 @@
+; Inno Setup Script para AnimeTracker v1.0.0
+; Requisito: Inno Setup 6+ (https://jrsoftware.org/isdl.php)
+;
+; Instrucciones:
+;   1. pip install pyinstaller
+;   2. pyinstaller anime_tracker.spec
+;   3. Abrir este .iss en Inno Setup Compiler
+;   4. Build > Compile
+;
+; El instalador de salida se llama AnimeTrackerV1.exe
+
+#define MyAppName "AnimeTracker"
+#define MyAppVersion "1.0.0"
+#define MyAppExeName "AnimeTracker v1.0.0.exe"
+
+[Setup]
+AppId={{B8A3C8E1-4F2D-4A6E-9C7D-1F5E2D8A3B4C}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppPublisher={#MyAppName}
+DefaultDirName={autopf}\{#MyAppName}
+DefaultGroupName={#MyAppName}
+DisableProgramGroupPage=yes
+OutputDir=.
+OutputBaseFilename=AnimeTrackerV1
+Compression=lzma2/max
+SolidCompression=yes
+WizardStyle=modern
+PrivilegesRequired=admin
+UninstallDisplayIcon={app}\icon.ico
+UninstallDisplayName={#MyAppName} v{#MyAppVersion}
+SetupIconFile=icon.ico
+
+[Languages]
+Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "Crear acceso directo en el escritorio"; GroupDescription: "Accesos directos:"
+
+[Files]
+Source: "dist\AnimeTracker v1.0.0\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{autoprograms}\AnimeTracker v{#MyAppVersion}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{autodesktop}\AnimeTracker v{#MyAppVersion}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
+
+[UninstallRun]
+; Borrar la base de datos de usuario en %APPDATA%
+Filename: "{cmd}"; Parameters: "/C rmdir /s /q ""{userappdata}\AnimeTracker"""; Flags: runhidden
+
+[UninstallDelete]
+Type: files; Name: "{app}\*.log"
+Type: files; Name: "{app}\animes_api.db"
+Type: dirifempty; Name: "{app}"
+
+[Code]
+function InitializeSetup: Boolean;
+begin
+  Result := True;
+end;
+
+procedure InitializeWizard;
+begin
+  WizardForm.PageDescriptionLabel.Caption := 'Asistente de instalacion de AnimeTracker v1.0.0';
+end;

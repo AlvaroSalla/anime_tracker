@@ -1,5 +1,6 @@
 from database.conexion import (
-    conectar, 
+    conectar,
+    conectar_tracker,
     cerrar_conexion
 )
 
@@ -20,7 +21,8 @@ def crear_tabla():
                 nombre TEXT NOT NULL,
                 caps_totales INTEGER,
                 imagen TEXT,
-                estado_api TEXT
+                estado_api TEXT,
+                popularity INTEGER DEFAULT 0
             )""")
 
     try:
@@ -28,6 +30,34 @@ def crear_tabla():
     except Exception:
         pass
 
+    try:
+        cursor.execute("ALTER TABLE animes_api ADD COLUMN popularity INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    conn.commit()
+    cerrar_conexion(conn)
+
+def crear_tablas_tracker():
+    conn = conectar_tracker()
+    cursor = conn.cursor()
+    cursor.execute("""CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL
+    )""")
+    cursor.execute("""CREATE TABLE IF NOT EXISTS animes_usuario (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        nombre TEXT NOT NULL,
+        caps_vistos INTEGER DEFAULT 0,
+        caps_totales INTEGER,
+        estado TEXT,
+        score INTEGER,
+        imagen TEXT,
+        estado_api TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )""")
     conn.commit()
     cerrar_conexion(conn)
 

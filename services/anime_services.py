@@ -130,6 +130,14 @@ def elegir_anime_api(busqueda):
 
 def _cargar_animes_populares(total=ANIMES_POPULARES_TOTAL):
     print("Cargando animes populares...")
+    animes_locales = obtener_animes_api_guardados(total)
+
+    if len(animes_locales) > 100:
+        print(f"Usando {len(animes_locales)} animes desde la base local.")
+        sincronizar_animes_populares_background(total)
+        return animes_locales
+
+    print("Base local insuficiente. Consultando API de AniList...")
     animes = mostrar_anime_popul(total)
 
     if animes:
@@ -153,12 +161,7 @@ def _cargar_animes_populares(total=ANIMES_POPULARES_TOTAL):
 
         return completos[:total]
 
-    print("Mostrando animes guardados localmente.")
-    animes_locales = obtener_animes_api_guardados(total)
-
-    if not animes_locales:
-        print("No hay animes disponibles localmente.")
-
+    print("No hay animes disponibles.")
     return animes_locales
 
 
@@ -200,6 +203,7 @@ def mostrar_anime_popul(total=200, esperar_rate_limit=False):
                     }
                     episodes
                     status
+                    popularity
                     nextAiringEpisode {
                         episode
                         airingAt

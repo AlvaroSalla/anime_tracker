@@ -1,4 +1,5 @@
 import sys
+import os
 import time
 import requests
 from io import BytesIO
@@ -7,12 +8,15 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QFrame, QStackedWidget,
     QScrollArea, QGridLayout, QLineEdit,
-    QComboBox, QSizePolicy
+    QComboBox, QSizePolicy, QCheckBox
 )
 from PyQt6.QtCore import Qt, QThread, QPoint, pyqtSignal
 from PyQt6.QtGui import QPixmap, QImage, QIcon, QPainter, QColor
 from PIL import Image
 
+BASE_DIR = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+
+import session
 from database.queries import (
     agregar_anime,
     actualizar_caps_anime,
@@ -20,6 +24,8 @@ from database.queries import (
     actualizar_score_anime,
     eliminar_anime_usuario,
     obtener_animes_usuario,
+    register_user,
+    login_user,
 )
 from services.anime_services import (
     ANIMES_POPULARES_TOTAL,
@@ -375,7 +381,7 @@ class LangDropdown(QFrame):
             flag = QLabel()
             flag.setFixedSize(60, 40)
             flag.setStyleSheet("background:transparent;border:none;")
-            path = f"resources/flag_{code}.jpg"
+            path = os.path.join(BASE_DIR, "resources", f"flag_{code}.jpg")
             pix = QPixmap(path)
             if pix.isNull():
                 pix = QPixmap(60, 40)
@@ -624,6 +630,136 @@ class LoadingView(QWidget):
         self.info.setText(Lang.tr("loading_progress", done=done, total=total))
 
 
+# ── Vista: Login / Registro ────────────────────────────────────────────────────
+class LoginView(QWidget):
+    def __init__(self, on_login_success):
+        super().__init__()
+        self.on_login_success = on_login_success
+        self.register_mode = False
+
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.setSpacing(16)
+
+        title = QLabel(Lang.tr("app_title"))
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet(f"font-size: 52px; font-weight: bold; color: {TEXT};")
+        layout.addWidget(title)
+        layout.addSpacing(30)
+
+        card = QFrame()
+        card.setFixedSize(380, 390)
+        card.setStyleSheet(f"QFrame {{ background: {SURFACE}; border-radius: 12px; border: 2px solid {BORDER}; }}")
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(28, 28, 28, 28)
+        card_layout.setSpacing(14)
+
+        self.title_label = QLabel("Iniciar sesión")
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.setStyleSheet(f"font-size: 22px; font-weight: bold; color: {TEXT}; border: none; background: transparent;")
+        card_layout.addWidget(self.title_label)
+
+        self.username_input = QLineEdit()
+        self.username_input.setPlaceholderText("Usuario")
+        self.username_input.setFixedHeight(44)
+        self.username_input.setStyleSheet(
+            f"QLineEdit {{ background: {BG}; border: 2px solid {BORDER}; border-radius: 8px; color: {TEXT}; font-size: 14px; padding: 0 12px; }}"
+        )
+        card_layout.addWidget(self.username_input)
+
+        self.password_input = QLineEdit()
+        self.password_input.setPlaceholderText("Contraseña")
+        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password_input.setFixedHeight(44)
+        self.password_input.setStyleSheet(
+            f"QLineEdit {{ background: {BG}; border: 2px solid {BORDER}; border-radius: 8px; color: {TEXT}; font-size: 14px; padding: 0 12px; }}"
+        )
+        card_layout.addWidget(self.password_input)
+
+        self.remember_cb = QCheckBox("Recordarme en este equipo")
+        self.remember_cb.setStyleSheet(
+            f"QCheckBox {{ color: {TEXT}; font-size: 13px; spacing: 6px; }}"
+            f"QCheckBox::indicator {{ width: 16px; height: 16px; border: 2px solid {BORDER}; border-radius: 3px; background: {BG}; }}"
+            f"QCheckBox::indicator:checked {{ background: {BLUE}; border-color: {BLUE}; }}"
+        )
+        card_layout.addWidget(self.remember_cb)
+
+        self.error_label = QLabel("")
+        self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.error_label.setWordWrap(True)
+        self.error_label.setStyleSheet("color: #dc2626; font-size: 12px; border: none; background: transparent;")
+        card_layout.addWidget(self.error_label)
+
+        self.action_btn = QPushButton("Iniciar sesión")
+        self.action_btn.setFixedHeight(44)
+        self.action_btn.setStyleSheet(
+            f"QPushButton {{ background: {BLUE}; border-radius: 8px; color: white; font-size: 15px; font-weight: bold; }}"
+            f"QPushButton:hover {{ background: #1d4ed8; }}"
+        )
+        self.action_btn.clicked.connect(self._do_action)
+        card_layout.addWidget(self.action_btn)
+
+        self.toggle_btn = QPushButton("Crear cuenta nueva")
+        self.toggle_btn.setFixedHeight(36)
+        self.toggle_btn.setStyleSheet(
+            f"QPushButton {{ background: transparent; color: {MUTED}; font-size: 13px; border: none; }}"
+            f"QPushButton:hover {{ color: {TEXT}; }}"
+        )
+        self.toggle_btn.clicked.connect(self._toggle_mode)
+        card_layout.addWidget(self.toggle_btn)
+
+        layout.addWidget(card)
+
+        self.password_input.returnPressed.connect(self._do_action)
+        self.username_input.returnPressed.connect(lambda: self.password_input.setFocus())
+
+    def _toggle_mode(self):
+        self.register_mode = not self.register_mode
+        self.error_label.setText("")
+        if self.register_mode:
+            self.title_label.setText("Crear cuenta")
+            self.action_btn.setText("Registrarse")
+            self.toggle_btn.setText("Ya tengo cuenta")
+        else:
+            self.title_label.setText("Iniciar sesión")
+            self.action_btn.setText("Iniciar sesión")
+            self.toggle_btn.setText("Crear cuenta nueva")
+
+    def _do_action(self):
+        username = self.username_input.text().strip()
+        password = self.password_input.text().strip()
+        if not username or not password:
+            self.error_label.setText("Completá todos los campos.")
+            return
+        if self.register_mode:
+            ok, msg = register_user(username, password)
+            if ok:
+                login_user(username, password)
+                if self.remember_cb.isChecked():
+                    session.save_remember_session(session.current_user_id, session.current_username)
+                self.on_login_success()
+            else:
+                self.error_label.setText(msg)
+        else:
+            ok, msg = login_user(username, password)
+            if ok:
+                if self.remember_cb.isChecked():
+                    session.save_remember_session(session.current_user_id, session.current_username)
+                self.on_login_success()
+            else:
+                self.error_label.setText(msg)
+
+    def reset(self):
+        self.username_input.clear()
+        self.password_input.clear()
+        self.error_label.setText("")
+        self.register_mode = False
+        self.remember_cb.setChecked(False)
+        self.title_label.setText("Iniciar sesión")
+        self.action_btn.setText("Iniciar sesión")
+        self.toggle_btn.setText("Crear cuenta nueva")
+
+
 # ── Vista: Menú principal ─────────────────────────────────────────────────────
 class ActionCard(QFrame):
     def __init__(self, title, detail, color, on_click):
@@ -652,7 +788,7 @@ class ActionCard(QFrame):
 
 
 class MainView(QWidget):
-    def __init__(self, on_add, on_saved, on_exit, on_language=None, on_theme=None):
+    def __init__(self, on_add, on_saved, on_exit, on_language=None, on_theme=None, on_logout=None):
         super().__init__()
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -661,7 +797,22 @@ class MainView(QWidget):
         top_bar = QWidget()
         top_bar.setFixedHeight(56)
         tl = QHBoxLayout(top_bar)
-        tl.setContentsMargins(0, 0, 24, 0)
+        tl.setContentsMargins(24, 0, 24, 0)
+
+        self.user_label = QLabel(f"👤 {session.current_username}" if session.current_username else "")
+        self.user_label.setStyleSheet(f"font-size: 14px; color: {MUTED}; background: transparent;")
+        tl.addWidget(self.user_label)
+
+        self.logout_btn = QPushButton("Cerrar sesión")
+        self.logout_btn.setFixedSize(120, 34)
+        self.logout_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.logout_btn.setStyleSheet(
+            f"QPushButton {{ background: transparent; color: {MUTED}; font-size: 13px; border-radius: 6px; }}"
+            f"QPushButton:hover {{ color: {RED}; background: {BORDER}; }}"
+        )
+        self.logout_btn.clicked.connect(on_logout) if on_logout else None
+        tl.addWidget(self.logout_btn)
+        tl.addStretch()
 
         self.gear = QPushButton("\u2699")
         self.gear.setFixedSize(40, 40)
@@ -677,7 +828,6 @@ class MainView(QWidget):
             f"QPushButton {{ background: transparent; color: {MUTED}; font-size: 20px; border-radius: 8px; }}"
             f"QPushButton:hover {{ color: {TEXT}; background: {BORDER}; }}"
         )
-        tl.addStretch()
         tl.addWidget(self.theme_btn)
         tl.addSpacing(4)
         tl.addWidget(self.gear)
@@ -1102,6 +1252,8 @@ class AddAnimePanel(QFrame):
         if estado == sl["completed"] and caps_totales:
             caps = caps_totales
 
+        estado = Lang.reverse_status(estado)
+
         agregar_anime(
             nombre, caps, caps_totales, estado, score,
             anime.get("id"),
@@ -1505,51 +1657,51 @@ class AnimeTrackerApp(QMainWindow):
         self.setWindowTitle(Lang.tr("app_title"))
         self.setMinimumSize(1280, 720)
         self.setStyleSheet(STYLE)
-        self.setWindowIcon(QIcon("icon.ico"))
+        self.setWindowIcon(QIcon(os.path.join(BASE_DIR, "icon.ico")))
+
+        from database.setup import crear_tablas_tracker
+        crear_tablas_tracker()
 
         self.image_cache    = {}
         self.loader_refs    = []
         self.preloaded      = []
         self.bg_preloader   = None
         self.preloader      = None
+        self.data_ready     = False
+        self._pending_login = False
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
-        # Loading screen
-        self.loading_view = LoadingView()
-        self.stack.addWidget(self.loading_view)
-
-        # Fetch 2000 animes data
+        # Start data fetch in background immediately
         self.data_worker = WorkerThread(obtener_animes_populares, ANIMES_POPULARES_TOTAL)
         self.data_worker.finished.connect(self._on_data_loaded)
         self.data_worker.start()
 
+        # Check for saved session
+        saved = session.load_remember_session()
+        if saved and session.user_exists_in_db(saved["user_id"]):
+            session.current_user_id = saved["user_id"]
+            session.current_username = saved["username"]
+            self._on_login_success()
+        else:
+            # Show login view
+            self.login_view = LoginView(on_login_success=self._on_login_success)
+            self.stack.addWidget(self.login_view)
+
     def _on_data_loaded(self, animes):
         self.preloaded = animes
-        self.loading_view.set_status(Lang.tr("preload_status"))
         self.preloader = PreloadWorker(animes, self.image_cache, 0, 50, delay=0)
-        self.preloader.progress.connect(self.loading_view.set_progress)
         self.preloader.finished.connect(self._on_preload_finished)
+        # If loading view is already showing, connect progress
+        if hasattr(self, 'loading_view') and self.loading_view is not None:
+            self.preloader.progress.connect(self.loading_view.set_progress)
+            self.loading_view.set_status(Lang.tr("preload_status"))
         self.preloader.start()
 
     def _on_preload_finished(self):
-        # Show main menu
-        self.main_view = MainView(
-            on_add      = self.show_add_view,
-            on_saved    = self.show_saved_view,
-            on_exit     = self.close,
-            on_language = self._on_language,
-            on_theme    = self._on_theme_toggle,
-        )
-        self.stack.addWidget(self.main_view)
-        self.stack.setCurrentWidget(self.main_view)
-
-        # Remove loading view
-        self.loading_view.deleteLater()
-        self.loading_view = None
-
-        # Background preload remaining images gradually
+        self.data_ready = True
+        # Start background preload for remaining images
         remaining = len(self.preloaded) - 50
         if remaining > 0:
             self.bg_preloader = PreloadWorker(
@@ -1558,6 +1710,60 @@ class AnimeTrackerApp(QMainWindow):
             )
             self.bg_preloader.finished.connect(self._on_bg_preload_finished)
             self.bg_preloader.start()
+        # If user already logged in and waiting, go to main
+        if self._pending_login:
+            self._go_to_main()
+
+    def _on_bg_preload_finished(self):
+        self.bg_preloader = None
+
+    def _on_login_success(self):
+        if self.data_ready:
+            self._go_to_main()
+        else:
+            self.loading_view = LoadingView()
+            self.stack.addWidget(self.loading_view)
+            self.stack.setCurrentWidget(self.loading_view)
+            self._pending_login = True
+            # If data is already loaded but preloader running, connect progress
+            if self.preloader is not None:
+                self.preloader.progress.connect(self.loading_view.set_progress)
+                self.loading_view.set_status(Lang.tr("preload_status"))
+
+    def _go_to_main(self):
+        self.main_view = MainView(
+            on_add      = self.show_add_view,
+            on_saved    = self.show_saved_view,
+            on_exit     = self.close,
+            on_language = self._on_language,
+            on_theme    = self._on_theme_toggle,
+            on_logout   = self._on_logout,
+        )
+        self.stack.addWidget(self.main_view)
+        self.stack.setCurrentWidget(self.main_view)
+        # Clean up login & loading views
+        if hasattr(self, 'login_view') and self.login_view is not None:
+            self.login_view.deleteLater()
+            self.login_view = None
+        if hasattr(self, 'loading_view') and self.loading_view is not None:
+            self.loading_view.deleteLater()
+            self.loading_view = None
+        self._pending_login = False
+
+    def _on_logout(self):
+        session.current_user_id = None
+        session.current_username = None
+        session.delete_remember_session()
+        self._pending_login = False
+        if hasattr(self, 'main_view') and self.main_view is not None:
+            self.main_view.deleteLater()
+            self.main_view = None
+        if hasattr(self, 'loading_view') and self.loading_view is not None:
+            self.loading_view.deleteLater()
+            self.loading_view = None
+        self.login_view = LoginView(on_login_success=self._on_login_success)
+        self.stack.addWidget(self.login_view)
+        self.stack.setCurrentWidget(self.login_view)
 
     def _on_language(self, code):
         Lang.set(code)
@@ -1568,6 +1774,7 @@ class AnimeTrackerApp(QMainWindow):
             on_exit     = self.close,
             on_language = self._on_language,
             on_theme    = self._on_theme_toggle,
+            on_logout   = self._on_logout,
         )
         self.stack.addWidget(self.main_view)
         self.stack.setCurrentWidget(self.main_view)
@@ -1582,6 +1789,7 @@ class AnimeTrackerApp(QMainWindow):
             on_exit     = self.close,
             on_language = self._on_language,
             on_theme    = self._on_theme_toggle,
+            on_logout   = self._on_logout,
         )
         self.stack.addWidget(self.main_view)
         self.stack.setCurrentWidget(self.main_view)
@@ -1598,9 +1806,6 @@ class AnimeTrackerApp(QMainWindow):
                 current.reflow()
         else:
             super().keyPressEvent(event)
-
-    def _on_bg_preload_finished(self):
-        self.bg_preloader = None
 
     def show_add_view(self):
         view = AddAnimeView(
