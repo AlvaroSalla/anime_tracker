@@ -35,6 +35,11 @@ def crear_tabla():
     except Exception:
         pass
 
+    try:
+        cursor.execute("ALTER TABLE animes_api ADD COLUMN next_airing_episode INTEGER")
+    except Exception:
+        pass
+
     conn.commit()
     cerrar_conexion(conn)
 
@@ -56,8 +61,15 @@ def crear_tablas_tracker():
         score INTEGER,
         imagen TEXT,
         estado_api TEXT,
+        api_id INTEGER,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )""")
+
+    try:
+        cursor.execute("ALTER TABLE animes_usuario ADD COLUMN api_id INTEGER")
+    except Exception:
+        pass
+
     conn.commit()
     cerrar_conexion(conn)
 

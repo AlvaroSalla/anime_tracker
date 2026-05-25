@@ -1,5 +1,5 @@
 ('C:\\Users\\Usuario\\Desktop\\anime_tracker\\anime_tracker\\build\\anime_tracker\\AnimeTracker '
- 'v1.0.0.exe',
+ 'v1.0.1.exe',
  False,
  False,
  True,
@@ -31,7 +31,7 @@
  None,
  None,
  'C:\\Users\\Usuario\\Desktop\\anime_tracker\\anime_tracker\\build\\anime_tracker\\AnimeTracker '
- 'v1.0.0.pkg',
+ 'v1.0.1.pkg',
  [('pyi-contents-directory _internal', '', 'OPTION'),
   ('PYZ-00.pyz',
    'C:\\Users\\Usuario\\Desktop\\anime_tracker\\anime_tracker\\build\\anime_tracker\\PYZ-00.pyz',
@@ -75,7 +75,7 @@
  [],
  False,
  False,
- 1779735393,
+ 1779747850,
  [('runw.exe',
    'C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
    'EXECUTABLE')],

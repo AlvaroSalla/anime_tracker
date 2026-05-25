@@ -1,5 +1,5 @@
 ('C:\\Users\\Usuario\\Desktop\\anime_tracker\\anime_tracker\\build\\anime_tracker\\AnimeTracker '
- 'v1.0.0.pkg',
+ 'v1.0.1.pkg',
  {'BINARY': True,
   'DATA': True,
   'EXECUTABLE': True,

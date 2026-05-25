@@ -1,6 +1,6 @@
-([('AnimeTracker v1.0.0.exe',
+([('AnimeTracker v1.0.1.exe',
    'C:\\Users\\Usuario\\Desktop\\anime_tracker\\anime_tracker\\build\\anime_tracker\\AnimeTracker '
-   'v1.0.0.exe',
+   'v1.0.1.exe',
    'EXECUTABLE'),
   ('PIL\\_avif.cp314-win_amd64.pyd',
    'C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages\\PIL\\_avif.cp314-win_amd64.pyd',

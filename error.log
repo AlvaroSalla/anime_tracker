@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "c:\Users\Usuario\Desktop\anime_tracker\anime_tracker\ui\app_qt.py", line 412, in run
+    self.finished.emit(self.fn(*self.args))
+                       ~~~~~~~^^^^^^^^^^^^
+  File "c:\Users\Usuario\Desktop\anime_tracker\anime_tracker\services\anime_services.py", line 172, in obtener_animes_populares
+    animes = _cargar_animes_populares(total)
+  File "c:\Users\Usuario\Desktop\anime_tracker\anime_tracker\services\anime_services.py", line 133, in _cargar_animes_populares
+    animes_locales = obtener_animes_api_guardados(total)
+  File "c:\Users\Usuario\Desktop\anime_tracker\anime_tracker\database\queries.py", line 106, in obtener_animes_api_guardados
+    cursor.execute("""SELECT api_id, nombre, caps_totales, imagen, estado_api, next_airing_episode
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                FROM animes_api ORDER BY popularity DESC LIMIT ?""", (limite,))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: next_airing_episode

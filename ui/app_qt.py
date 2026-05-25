@@ -559,7 +559,7 @@ class DropdownEntry(QFrame):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFixedHeight(260)
+        scroll.setFixedHeight(min(len(self.options) * 34 + 10, 200))
         scroll.setStyleSheet("QScrollArea { border: none; } QScrollBar:vertical { background: #1e293b; width: 6px; border-radius: 3px; } QScrollBar::handle:vertical { background: #475569; border-radius: 3px; min-height: 20px; } QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }")
 
         inner = QWidget()
@@ -866,7 +866,7 @@ class MainView(QWidget):
         bl = QHBoxLayout(bottom)
         bl.setContentsMargins(0, 0, 32, 0)
         bl.addStretch()
-        exit_btn = label_btn(Lang.tr("exit"), BORDER, w=150)
+        exit_btn = label_btn(Lang.tr("exit"), "#475569", w=150)
         exit_btn.clicked.connect(on_exit)
         bl.addWidget(exit_btn)
         main_layout.addWidget(bottom)
@@ -995,7 +995,7 @@ class AddAnimeView(QWidget):
         bl = QHBoxLayout(bottom)
         bl.setContentsMargins(0, 0, 0, 0)
 
-        back = label_btn(Lang.tr("back"), BORDER, w=120)
+        back = label_btn(Lang.tr("back"), "#475569", w=120)
         back.clicked.connect(on_back)
         bl.addWidget(back)
         bl.addStretch()
@@ -1072,7 +1072,8 @@ class AddAnimeView(QWidget):
             self.panel = None
 
         self.selected_id = anime.get("id")
-        self.columns     = 4
+        av = self.width() - 136 - 18 - 430
+        self.columns     = max(1, av // 170)
         self.page_size   = 40
         self.panel = AddAnimePanel(anime, self.cache, self.loader_refs)
         self.panel.closed.connect(self._close_panel)
@@ -1085,7 +1086,8 @@ class AddAnimeView(QWidget):
             self.panel.deleteLater()
             self.panel = None
         self.selected_id = None
-        self.columns     = 6
+        av = self.width() - 136
+        self.columns = max(1, av // 170)
         self.page_size = 50
         self._render_page()
 
@@ -1093,8 +1095,6 @@ class AddAnimeView(QWidget):
         self._close_panel()
 
     def reflow(self):
-        if self.panel is not None:
-            return
         cols = max(1, self.scroll.viewport().width() // 170)
         if cols != self.columns:
             self.columns = cols
@@ -1123,7 +1123,7 @@ class AddAnimePanel(QFrame):
         layout.setContentsMargins(24, 18, 24, 24)
         layout.setSpacing(10)
 
-        close_btn = label_btn(Lang.tr("close"), BORDER, w=92, h=34)
+        close_btn = label_btn(Lang.tr("close"), "#475569", w=92, h=34)
         close_btn.clicked.connect(self.closed.emit)
         layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignRight)
 
@@ -1153,12 +1153,31 @@ class AddAnimePanel(QFrame):
         caps_disp   = (next_ep - 1) if next_ep else None
 
         is_airing = status_key == "RELEASING"
+
+        if not caps_total and not isinstance(next_airing, dict) and is_airing:
+            try:
+                r = requests.post("https://graphql.anilist.co", json={
+                    "query": "query($id:Int){Media(id:$id,type:ANIME){episodes nextAiringEpisode{episode}}}",
+                    "variables": {"id": anime.get("id")}
+                }, timeout=10)
+                d = r.json()
+                m = d.get("data", {}).get("Media", {})
+                if m.get("episodes"):
+                    anime["episodes"] = caps_total = m["episodes"]
+                na = m.get("nextAiringEpisode")
+                if isinstance(na, dict) and na.get("episode"):
+                    anime["nextAiringEpisode"] = next_airing = na
+                    next_ep = na["episode"]
+                    caps_disp = next_ep - 1
+            except Exception:
+                pass
+
         if caps_total:
             self.caps_total_val = caps_total
             caps_total_text     = str(caps_total)
         elif caps_disp:
             self.caps_total_val = caps_disp
-            caps_total_text     = str(caps_disp)
+            caps_total_text     = f"{caps_disp} ({Lang.tr('airing')})"
         elif is_airing:
             self.caps_total_val = 9999
             caps_total_text     = Lang.tr("airing")
@@ -1171,8 +1190,9 @@ class AddAnimePanel(QFrame):
         layout.addWidget(ep_info)
 
         layout.addWidget(self._section_label(Lang.tr("episodes_label")))
+        caps_opts = ["0", "1"] if self.caps_total_val == 1 else [str(i) for i in range(0, self.caps_total_val + 1)]
         self.caps_entry = DropdownEntry(
-            [str(i) for i in range(0, self.caps_total_val + 1)],
+            caps_opts,
             initial="0", readonly=False
         )
         layout.addWidget(self.caps_entry)
@@ -1347,7 +1367,7 @@ class SavedAnimePanel(QFrame):
         layout.setContentsMargins(24, 18, 24, 24)
         layout.setSpacing(10)
 
-        close_btn = label_btn(Lang.tr("close"), BORDER, w=92, h=34)
+        close_btn = label_btn(Lang.tr("close"), "#475569", w=92, h=34)
         close_btn.clicked.connect(self.closed.emit)
         layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignRight)
 
@@ -1369,9 +1389,34 @@ class SavedAnimePanel(QFrame):
         status_lbl.setStyleSheet(f"background: {status_color}; border-radius: 7px; color: white; font-size: 12px; font-weight: bold;")
         layout.addWidget(status_lbl)
 
-        caps_tot     = anime["caps_totales"] if anime["caps_totales"] is not None else 9999
-        caps_tot_txt = str(anime["caps_totales"]) if anime["caps_totales"] is not None else "?"
-        self.caps_max = caps_tot
+        caps_tot   = anime["caps_totales"]
+        est_api    = anime.get("estado_api", "")
+
+        if caps_tot is None and est_api == "RELEASING":
+            api_id = anime.get("api_id")
+            if api_id:
+                try:
+                    r = requests.post("https://graphql.anilist.co", json={
+                        "query": "query($id:Int){Media(id:$id,type:ANIME){episodes nextAiringEpisode{episode}}}",
+                        "variables": {"id": api_id}
+                    }, timeout=10)
+                    d = r.json()
+                    m = d.get("data", {}).get("Media", {})
+                    if m.get("episodes"):
+                        caps_tot = m["episodes"]
+                        anime["caps_totales"] = caps_tot
+                    else:
+                        na = m.get("nextAiringEpisode")
+                        if isinstance(na, dict) and na.get("episode"):
+                            caps_tot = na["episode"] - 1
+                            anime["caps_totales"] = caps_tot
+                except Exception:
+                    pass
+
+        caps_max     = caps_tot if caps_tot is not None else 9999
+        caps_tot_txt = str(caps_tot) if caps_tot is not None else (
+            Lang.tr("airing") if est_api == "RELEASING" else "?")
+        self.caps_max = caps_max
 
         prog_lbl = QLabel(f"{anime['caps_vistos']}/{caps_tot_txt}")
         prog_lbl.setStyleSheet(f"background: {BORDER}; border-radius: 7px; color: {TEXT}; font-size: 13px; font-weight: bold; padding: 4px 10px;")
@@ -1379,8 +1424,9 @@ class SavedAnimePanel(QFrame):
         layout.addWidget(prog_lbl)
 
         layout.addWidget(self._section(Lang.tr("episodes_label")))
+        caps_opts = ["0", "1"] if caps_max == 1 else [str(i) for i in range(0, caps_max + 1)]
         self.caps_entry = DropdownEntry(
-            [str(i) for i in range(0, caps_tot + 1)],
+            caps_opts,
             initial=str(anime["caps_vistos"]), readonly=False
         )
         layout.addWidget(self.caps_entry)
@@ -1538,7 +1584,7 @@ class SavedAnimeView(QWidget):
         bl = QHBoxLayout(bottom)
         bl.setContentsMargins(0, 0, 0, 0)
 
-        back = label_btn(Lang.tr("back"), BORDER, w=120)
+        back = label_btn(Lang.tr("back"), "#475569", w=120)
         back.clicked.connect(on_back)
         bl.addWidget(back)
         bl.addStretch()
@@ -1619,7 +1665,8 @@ class SavedAnimeView(QWidget):
             self.panel = None
 
         self.selected_id = anime["id"]
-        self.columns     = 2
+        av = self.width() - 136 - 18 - 430
+        self.columns     = max(1, av // 370)
         self.page_size   = 6
         self.panel = SavedAnimePanel(anime, self.cache, self.loader_refs)
         self.panel.closed.connect(self._close_panel)
@@ -1633,7 +1680,8 @@ class SavedAnimeView(QWidget):
             self.panel.deleteLater()
             self.panel = None
         self.selected_id = None
-        self.columns     = 3
+        av = self.width() - 136
+        self.columns = max(1, av // 370)
         self.page_size   = 9
         self._render_page()
 
@@ -1642,8 +1690,6 @@ class SavedAnimeView(QWidget):
         self.reload()
 
     def reflow(self):
-        if self.panel is not None:
-            return
         cols = max(1, self.scroll.viewport().width() // 370)
         if cols != self.columns:
             self.columns = cols
@@ -1659,7 +1705,8 @@ class AnimeTrackerApp(QMainWindow):
         self.setStyleSheet(STYLE)
         self.setWindowIcon(QIcon(os.path.join(BASE_DIR, "icon.ico")))
 
-        from database.setup import crear_tablas_tracker
+        from database.setup import crear_tabla, crear_tablas_tracker
+        crear_tabla()
         crear_tablas_tracker()
 
         self.image_cache    = {}
