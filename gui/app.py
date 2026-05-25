@@ -26,132 +26,6 @@ from services.anime_services import (
 
 
 class AnimeTrackerApp(ctk.CTk):
-    TEXTS = {
-        "es": {
-            "loading_catalog": "Preparando catalogo...",
-            "loading_anilist": "Cargando datos de AniList...",
-            "loading_covers_start": "Precargando portadas 1-{count}...",
-            "loading_covers_progress": "Precargando portadas {loaded}/{total}...",
-            "app_subtitle": "Tu biblioteca de anime, organizada y lista para seguir mirando.",
-            "add_anime": "Agregar anime",
-            "add_detail": "Buscar y sumar series",
-            "saved_anime": "Ver animes guardados",
-            "saved_detail": "Revisar y editar progreso",
-            "open": "Abrir",
-            "exit": "Salir",
-            "back": "Volver",
-            "saved_header": "Animes guardados",
-            "saved_subtitle": "Revisa tu progreso, capitulos vistos y estado actual.",
-            "saved_search": "Buscar guardado...",
-            "add_header": "Agregar anime",
-            "add_subtitle": "Elegi uno de los animes populares para empezar a guardarlo.",
-            "add_search": "Buscar anime...",
-            "all": "Todos",
-            "no_saved": "No hay animes guardados para mostrar.",
-            "no_add": "No hay animes disponibles para mostrar.",
-            "no_results": "No se encontraron animes con ese filtro.",
-            "no_image": "Sin imagen",
-            "loading": "Cargando...",
-            "close": "Cerrar",
-            "episodes": "Capitulos",
-            "total_episodes": "Capitulos totales: {total}",
-            "state": "Estado",
-            "save_changes": "Guardar cambios",
-            "delete": "Eliminar",
-            "save_anime": "Guardar anime",
-            "score_label": "Puntuación",
-            "score": "Puntuación: {score}",
-            "score_input_error": "Capitulos y puntuación tienen que ser numeros.",
-            "score_range_error": "La puntuación tiene que estar entre 1 y 10.",
-            "previous": "Anterior",
-            "next": "Siguiente",
-            "page": "Pagina {page}/{total} - {start}-{end} de {count}",
-            "no_page_results": "Sin resultados",
-        },
-        "en": {
-            "loading_catalog": "Preparing catalog...",
-            "loading_anilist": "Loading AniList data...",
-            "loading_covers_start": "Preloading covers 1-{count}...",
-            "loading_covers_progress": "Preloading covers {loaded}/{total}...",
-            "app_subtitle": "Your anime library, organized and ready to keep watching.",
-            "add_anime": "Add anime",
-            "add_detail": "Search and add series",
-            "saved_anime": "Saved anime",
-            "saved_detail": "Review and edit progress",
-            "open": "Open",
-            "exit": "Exit",
-            "back": "Back",
-            "saved_header": "Saved anime",
-            "saved_subtitle": "Review your progress, watched episodes, and current status.",
-            "saved_search": "Search saved...",
-            "add_header": "Add anime",
-            "add_subtitle": "Choose one of the popular anime to start tracking it.",
-            "add_search": "Search anime...",
-            "all": "All",
-            "no_saved": "No saved anime to show.",
-            "no_add": "No anime available to show.",
-            "no_results": "No anime matched that filter.",
-            "no_image": "No image",
-            "loading": "Loading...",
-            "close": "Close",
-            "episodes": "Episodes",
-            "total_episodes": "Total episodes: {total}",
-            "state": "Status",
-            "save_changes": "Save changes",
-            "delete": "Delete",
-            "save_anime": "Save anime",
-            "score_label": "Score",
-            "score": "Score: {score}",
-            "score_input_error": "Episodes and score must be numbers.",
-            "score_range_error": "Score must be between 1 and 10.",
-            "previous": "Previous",
-            "next": "Next",
-            "page": "Page {page}/{total} - {start}-{end} of {count}",
-            "no_page_results": "No results",
-        },
-        "pt": {
-            "loading_catalog": "Preparando catalogo...",
-            "loading_anilist": "Carregando dados do AniList...",
-            "loading_covers_start": "Precarregando capas 1-{count}...",
-            "loading_covers_progress": "Precarregando capas {loaded}/{total}...",
-            "app_subtitle": "Sua biblioteca de anime, organizada e pronta para continuar.",
-            "add_anime": "Adicionar anime",
-            "add_detail": "Buscar e adicionar series",
-            "saved_anime": "Animes salvos",
-            "saved_detail": "Revisar e editar progresso",
-            "open": "Abrir",
-            "exit": "Sair",
-            "back": "Voltar",
-            "saved_header": "Animes salvos",
-            "saved_subtitle": "Revise seu progresso, episodios vistos e estado atual.",
-            "saved_search": "Buscar salvo...",
-            "add_header": "Adicionar anime",
-            "add_subtitle": "Escolha um anime popular para comecar a acompanhar.",
-            "add_search": "Buscar anime...",
-            "all": "Todos",
-            "no_saved": "Nao ha animes salvos para mostrar.",
-            "no_add": "Nao ha animes disponiveis para mostrar.",
-            "no_results": "Nenhum anime encontrado com esse filtro.",
-            "no_image": "Sem imagem",
-            "loading": "Carregando...",
-            "close": "Fechar",
-            "episodes": "Episodios",
-            "total_episodes": "Episodios totais: {total}",
-            "state": "Estado",
-            "save_changes": "Salvar",
-            "delete": "Excluir",
-            "save_anime": "Salvar anime",
-            "score_label": "Pontuação",
-            "score": "Pontuação: {score}",
-            "score_input_error": "Episodios e pontuação precisam ser numeros.",
-            "score_range_error": "A pontuação deve estar entre 1 e 10.",
-            "previous": "Anterior",
-            "next": "Próximo",
-            "page": "Pagina {page}/{total} - {start}-{end} de {count}",
-            "no_page_results": "Sem resultados",
-        },
-    }
-
     def __init__(self):
         super().__init__()
 
@@ -192,11 +66,6 @@ class AnimeTrackerApp(ctk.CTk):
         self._main_cards = []
         self._editor_animation_job = None
         self._editor_animation_token = 0
-        self.language_menu = None
-        self.settings_button = None
-        self.theme_toggle_button = None
-        self.appearance_mode = "dark"
-        self.current_language = "en"
 
         # Navigation state for canvas-drawn buttons (Anterior/Siguiente)
         self._nav_prev_enabled = False
@@ -204,7 +73,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         self._set_window_icon(self)
 
-        ctk.set_appearance_mode(self.appearance_mode)
+        ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
         self.bind("<F11>", self._toggle_fullscreen)
@@ -241,121 +110,6 @@ class AnimeTrackerApp(ctk.CTk):
         self.show_loading_view()
         threading.Thread(target=self._preload_anime_items, daemon=True).start()
 
-    def _t(self, key, **kwargs):
-        text = self.TEXTS.get(self.current_language, self.TEXTS["es"]).get(key, self.TEXTS["es"].get(key, key))
-        return text.format(**kwargs) if kwargs else text
-
-    def _colors(self):
-        if self.appearance_mode == "light":
-            return {
-                "bg": "#e2e8f0",
-                "bg_deep": "#cbd5e1",
-                "surface": "#f8fafc",
-                "surface_alt": "#e2e8f0",
-                "line": "#cbd5e1",
-                "line_strong": "#94a3b8",
-                "text": "#0f172a",
-                "muted": "#475569",
-                "disabled": "#94a3b8",
-            }
-
-        return {
-            "bg": "#0f172a",
-            "bg_deep": "#05070b",
-            "surface": "#1e293b",
-            "surface_alt": "#334155",
-            "line": "#334155",
-            "line_strong": "#475569",
-            "text": "#f1f5f9",
-            "muted": "#94a3b8",
-            "disabled": "#475569",
-        }
-
-    def _input_color(self):
-        return "#ffffff" if self.appearance_mode == "light" else self._colors()["bg"]
-
-    def _chip_text_color(self):
-        return "#ffffff" if self.appearance_mode == "dark" else self._colors()["text"]
-
-    def _placeholder_color(self):
-        return "#64748b" if self.appearance_mode == "light" else self._colors()["muted"]
-
-    USER_STATUS_LABELS = {
-        "es": {
-            "En proceso": "En proceso",
-            "Completo": "Completo",
-            "Planeado": "Planeado",
-            "En espera": "En espera",
-            "Abandonado": "Abandonado",
-        },
-        "en": {
-            "En proceso": "Watching",
-            "Completo": "Complete",
-            "Planeado": "Planned",
-            "En espera": "On hold",
-            "Abandonado": "Dropped",
-        },
-        "pt": {
-            "En proceso": "Assistindo",
-            "Completo": "Completo",
-            "Planeado": "Planejado",
-            "En espera": "Em espera",
-            "Abandonado": "Abandonado",
-        },
-    }
-
-    API_STATUS_LABELS = {
-        "es": {
-            "RELEASING": "En emision",
-            "FINISHED": "Terminado",
-            "NOT_YET_RELEASED": "No estrenado",
-            "CANCELLED": "Cancelado",
-            "HIATUS": "En pausa",
-        },
-        "en": {
-            "RELEASING": "Releasing",
-            "FINISHED": "Finished",
-            "NOT_YET_RELEASED": "Upcoming",
-            "CANCELLED": "Cancelled",
-            "HIATUS": "Hiatus",
-        },
-        "pt": {
-            "RELEASING": "Em exibicao",
-            "FINISHED": "Finalizado",
-            "NOT_YET_RELEASED": "Nao estreou",
-            "CANCELLED": "Cancelado",
-            "HIATUS": "Em pausa",
-        },
-    }
-
-    def _user_status_options(self):
-        labels = self.USER_STATUS_LABELS.get(self.current_language, self.USER_STATUS_LABELS["es"])
-        return list(labels.values())
-
-    def _api_status_options(self):
-        labels = self.API_STATUS_LABELS.get(self.current_language, self.API_STATUS_LABELS["es"])
-        return list(labels.values())
-
-    def _user_status_label(self, status):
-        return self.USER_STATUS_LABELS.get(self.current_language, self.USER_STATUS_LABELS["es"]).get(status, status)
-
-    def _api_status_label_text(self, status):
-        return self.API_STATUS_LABELS.get(self.current_language, self.API_STATUS_LABELS["es"]).get(status, status)
-
-    def _user_status_value(self, label):
-        labels = self.USER_STATUS_LABELS.get(self.current_language, self.USER_STATUS_LABELS["es"])
-        for status, translated in labels.items():
-            if label == translated:
-                return status
-        return label
-
-    def _api_status_value(self, label):
-        labels = self.API_STATUS_LABELS.get(self.current_language, self.API_STATUS_LABELS["es"])
-        for status, translated in labels.items():
-            if label == translated:
-                return status
-        return None
-
     def _widget_fg_color(self, widget):
         try:
             color = widget.cget("fg_color")
@@ -373,7 +127,7 @@ class AnimeTrackerApp(ctk.CTk):
         surface_color = parent_color if is_transparent_surface else own_color
 
         try:
-            widget.configure(bg_color="transparent" if is_transparent_surface else (parent_color or self._colors()["surface"]))
+            widget.configure(bg_color="transparent" if is_transparent_surface else (parent_color or "#1e293b"))
         except (ValueError, tk.TclError, AttributeError):
             pass
 
@@ -540,205 +294,6 @@ class AnimeTrackerApp(ctk.CTk):
     def _ease_out_cubic(self, progress):
         return 1 - pow(1 - progress, 3)
 
-    def _show_settings_button(self):
-        self._close_language_menu()
-        colors = self._colors()
-
-        self.settings_button = ctk.CTkButton(
-            self.content_frame,
-            text="⚙",
-            width=38,
-            height=38,
-            fg_color=colors["surface"],
-            bg_color=colors["bg"],
-            hover_color=colors["surface_alt"],
-            text_color=colors["text"],
-            corner_radius=19,
-            border_width=1,
-            border_color=colors["line_strong"],
-            font=ctk.CTkFont(family=self.font_family, size=22, weight="bold"),
-            command=self._toggle_language_menu
-        )
-        self.settings_button.place(relx=1.0, x=-26, y=18, anchor="ne")
-        self.settings_button.lift()
-
-        self.theme_toggle_button = ctk.CTkButton(
-            self.content_frame,
-            text=self._theme_toggle_text(),
-            width=38,
-            height=38,
-            fg_color=colors["surface"],
-            bg_color=colors["bg"],
-            hover_color=colors["surface_alt"],
-            text_color=colors["text"],
-            corner_radius=19,
-            border_width=1,
-            border_color=colors["line_strong"],
-            font=ctk.CTkFont(family=self.font_family, size=17, weight="bold"),
-            command=self._toggle_appearance_mode
-        )
-        self.theme_toggle_button.place(relx=1.0, x=-26, y=62, anchor="ne")
-        self.theme_toggle_button.lift()
-
-    def _theme_toggle_text(self):
-        return "☀" if self.appearance_mode == "dark" else "☾"
-
-    def _toggle_appearance_mode(self):
-        self._close_language_menu()
-        self.appearance_mode = "light" if self.appearance_mode == "dark" else "dark"
-        ctk.set_appearance_mode(self.appearance_mode)
-
-        if self.appearance_mode == "light":
-            self.background_color = self._colors()["bg"]
-        else:
-            self.background_color = self._colors()["bg"]
-
-        colors = self._colors()
-        button_color = colors["surface"]
-        hover_color = colors["surface_alt"]
-        text_color = colors["text"]
-        border_color = colors["line_strong"]
-
-        self.configure(fg_color=self.background_color)
-        for frame_name in ("content_frame", "bottom_bar"):
-            frame = getattr(self, frame_name, None)
-            if frame is not None:
-                try:
-                    frame.configure(bg=self.background_color)
-                except tk.TclError:
-                    pass
-
-        if self.theme_toggle_button is not None and self.theme_toggle_button.winfo_exists():
-            self.theme_toggle_button.configure(
-                text=self._theme_toggle_text(),
-                fg_color=button_color,
-                hover_color=hover_color,
-                text_color=text_color,
-                border_color=border_color
-            )
-
-        if self.settings_button is not None and self.settings_button.winfo_exists():
-            self.settings_button.configure(
-                fg_color=button_color,
-                hover_color=hover_color,
-                text_color=text_color,
-                border_color=border_color,
-                bg_color=colors["bg"]
-            )
-
-        if hasattr(self, "content_background"):
-            self._draw_background(self.content_background)
-        if hasattr(self, "bottom_background"):
-            self._draw_background(self.bottom_background)
-
-        if self.current_view == "main":
-            self.show_main_view()
-
-        self._redraw_language_menu()
-
-    def _redraw_language_menu(self):
-        if self.language_menu is not None and self.language_menu.winfo_exists():
-            colors = self._colors()
-            for child in self.language_menu.winfo_children():
-                if isinstance(child, tk.Canvas):
-                    child.configure(bg=colors["bg"])
-                    self._draw_language_flag(
-                        child,
-                        getattr(child, "_flag_name", ""),
-                        getattr(child, "_flag_selected", False)
-                    )
-
-    def _toggle_language_menu(self):
-        if self.language_menu is not None and self.language_menu.winfo_exists():
-            self._close_language_menu()
-            return
-
-        colors = self._colors()
-        self.language_menu = ctk.CTkFrame(
-            self.content_frame,
-            fg_color=colors["bg"],
-            bg_color=colors["bg"],
-            width=154,
-            height=38,
-            corner_radius=8
-        )
-        self.language_menu.place(relx=1.0, x=-82, y=18, anchor="ne")
-        self.language_menu.grid_propagate(False)
-
-        languages = [
-            ("es", "spain"),
-            ("en", "uk"),
-            ("pt", "portugal"),
-        ]
-
-        for column, (code, flag) in enumerate(languages):
-            selected = code == self.current_language
-            button = tk.Canvas(
-                self.language_menu,
-                width=38,
-                height=38,
-                bg=colors["bg"],
-                highlightthickness=0,
-                bd=0,
-                cursor="hand2"
-            )
-            button._flag_name = flag
-            button._flag_selected = selected
-            button.grid(row=0, column=column, padx=(0, 8) if column < len(languages) - 1 else 0)
-            self._draw_language_flag(button, flag, selected)
-            button.bind("<Button-1>", lambda event, selected_code=code: self._select_language(selected_code))
-            button.bind("<Enter>", lambda event, canvas=button, flag_name=flag, is_selected=selected: self._draw_language_flag(canvas, flag_name, is_selected, hover=True))
-            button.bind("<Leave>", lambda event, canvas=button, flag_name=flag, is_selected=selected: self._draw_language_flag(canvas, flag_name, is_selected))
-
-        self.language_menu.lift()
-
-    def _draw_language_flag(self, canvas, flag_name, selected=False, hover=False):
-        canvas.delete("all")
-        colors = self._colors()
-        bg = colors["surface"] if selected or hover else colors["bg"]
-        border = "#60a5fa" if selected else (colors["line_strong"] if hover else bg)
-        canvas.create_oval(1, 1, 37, 37, fill=bg, outline=border, width=1)
-        x0, y0, x1, y1 = 8, 11, 30, 27
-
-        if flag_name == "spain":
-            canvas.create_rectangle(x0, y0, x1, y1, fill="#c60b1e", outline="")
-            canvas.create_rectangle(x0, y0 + 4, x1, y1 - 4, fill="#ffc400", outline="")
-        elif flag_name == "portugal":
-            canvas.create_rectangle(x0, y0, x0 + 9, y1, fill="#006600", outline="")
-            canvas.create_rectangle(x0 + 9, y0, x1, y1, fill="#ff0000", outline="")
-            canvas.create_oval(x0 + 7, y0 + 5, x0 + 15, y0 + 13, fill="#ffd700", outline="")
-        else:
-            canvas.create_rectangle(x0, y0, x1, y1, fill="#012169", outline="")
-            canvas.create_polygon(x0, y0, x0 + 4, y0, x1, y1 - 4, x1, y1, fill="#ffffff", outline="")
-            canvas.create_polygon(x1, y0, x1, y0 + 4, x0 + 4, y1, x0, y1, fill="#ffffff", outline="")
-            canvas.create_polygon(x0, y0, x0 + 2, y0, x1, y1 - 2, x1, y1, fill="#c8102e", outline="")
-            canvas.create_polygon(x1, y0, x1, y0 + 2, x0 + 2, y1, x0, y1, fill="#c8102e", outline="")
-            canvas.create_rectangle(x0 + 9, y0, x0 + 13, y1, fill="#ffffff", outline="")
-            canvas.create_rectangle(x0, y0 + 6, x1, y0 + 10, fill="#ffffff", outline="")
-            canvas.create_rectangle(x0 + 10, y0, x0 + 12, y1, fill="#c8102e", outline="")
-            canvas.create_rectangle(x0, y0 + 7, x1, y0 + 9, fill="#c8102e", outline="")
-
-        canvas.create_rectangle(x0, y0, x1, y1, outline="#e2e8f0", width=1)
-
-    def _select_language(self, language_code):
-        self.current_language = language_code
-        self._close_language_menu()
-        if self.current_view == "main":
-            self.show_main_view()
-        elif self.current_view == "saved":
-            self.show_saved_anime_view()
-        elif self.current_view == "add":
-            self.show_add_anime_view()
-
-    def _close_language_menu(self):
-        if self.language_menu is not None:
-            try:
-                if self.language_menu.winfo_exists():
-                    self.language_menu.destroy()
-            except tk.TclError:
-                pass
-        self.language_menu = None
-
     def _animate_editor_transition(self, view, opening, on_complete=None):
         if view == "add":
             grid = getattr(self, "anime_scroll", None)
@@ -828,14 +383,13 @@ class AnimeTrackerApp(ctk.CTk):
         background.place(x=0, y=0, relwidth=1, relheight=1)
 
         def draw(event=None, current_canvas=background):
-            colors = self._colors()
             self._draw_background(current_canvas)
             current_canvas.create_text(
                 0,
                 18,
                 text=title,
                 anchor="w",
-                fill=colors["text"],
+                fill="#f1f5f9",
                 font=(self.font_family, 24, "bold")
             )
             current_canvas.create_text(
@@ -843,7 +397,7 @@ class AnimeTrackerApp(ctk.CTk):
                 54,
                 text=subtitle,
                 anchor="w",
-                fill=colors["muted"],
+                fill="#94a3b8",
                 font=(self.font_family, 11, "bold")
             )
 
@@ -856,7 +410,7 @@ class AnimeTrackerApp(ctk.CTk):
             parent,
             highlightthickness=0,
             bd=0,
-            bg=self.background_color
+            bg="#0f172a"
         )
         background.place(x=0, y=0, relwidth=1, relheight=1)
         background.bind("<Configure>", lambda event: self._draw_background(background))
@@ -878,57 +432,55 @@ class AnimeTrackerApp(ctk.CTk):
         background.delete("all")
 
         if self.current_view == "loading":
-            colors = self._colors()
-            background.create_rectangle(0, 0, width, height, fill=colors["bg_deep"], outline="")
+            background.create_rectangle(0, 0, width, height, fill="#05070b", outline="")
 
             if background is getattr(self, "content_background", None):
                 background.create_text(
                     width / 2,
                     height / 2 - 80,
                     text="Anime Tracker",
-                    fill=colors["text"],
+                    fill="#ffffff",
                     font=(self.font_family, 38, "bold")
                 )
                 background.create_text(
                     width / 2,
                     height / 2 - 26,
-                    text=self._t("loading_catalog"),
-                    fill=colors["muted"],
+                    text="Cargando catalogo de animes...",
+                    fill="#94a3b8",
                     font=(self.font_family, 13, "bold")
                 )
 
             background.move("all", -offset_x, -offset_y)
             return
 
-        colors = self._colors()
-        background.create_rectangle(0, 0, width, height, fill=colors["bg"], outline="")
+        background.create_rectangle(0, 0, width, height, fill="#0f172a", outline="")
 
         washes = [
-            (colors["surface"], (-240, -80, 470, 370)),
-            (colors["surface"], (width - 420, -170, width + 250, 330)),
-            (colors["surface"], (width - 360, height - 300, width + 210, height + 180)),
-            (colors["surface"], (-230, height - 260, 360, height + 150)),
-            (colors["surface"], (width * 0.34, -150, width * 0.75, 180)),
-            (colors["surface"], (width * 0.25, height - 205, width * 0.62, height + 120)),
+            ("#1e293b", (-240, -80, 470, 370)),
+            ("#1e293b", (width - 420, -170, width + 250, 330)),
+            ("#1e293b", (width - 360, height - 300, width + 210, height + 180)),
+            ("#1e293b", (-230, height - 260, 360, height + 150)),
+            ("#1e293b", (width * 0.34, -150, width * 0.75, 180)),
+            ("#1e293b", (width * 0.25, height - 205, width * 0.62, height + 120)),
         ]
 
         for color, bounds in washes:
             background.create_oval(*bounds, fill=color, outline="")
 
-        for offset, color in [(0, colors["surface"]), (80, colors["surface"])]:
+        for offset, color in [(0, "#1e293b"), (80, "#1e293b")]:
             for x in range(-80 + offset, width + 180, 170):
                 background.create_line(x, 0, x - 110, height, fill=color, width=1)
 
         for y in range(74, height + 120, 132):
-            background.create_line(0, y, width, y - 62, fill=colors["surface"], width=1)
+            background.create_line(0, y, width, y - 62, fill="#1e293b", width=1)
 
         ribbons = [
-            (colors["line"], 5, [(-120, 122), (135, 54), (380, 124), (635, 70), (width + 120, 150)]),
-            (colors["line"], 4, [(-80, height - 168), (200, height - 238), (470, height - 180), (780, height - 270), (width + 85, height - 215)]),
-            (colors["line"], 5, [(width - 440, -70), (width - 300, 115), (width - 110, 185), (width + 80, 340)]),
-            (colors["line"], 3, [(70, height * 0.52), (210, height * 0.46), (360, height * 0.54), (540, height * 0.48)]),
-            (colors["line"], 3, [(width * 0.20, 42), (width * 0.31, 92), (width * 0.43, 48), (width * 0.58, 104)]),
-            (colors["line"], 2, [(width * 0.60, height - 78), (width * 0.72, height - 135), (width * 0.84, height - 92), (width * 0.96, height - 150)]),
+            ("#334155", 5, [(-120, 122), (135, 54), (380, 124), (635, 70), (width + 120, 150)]),
+            ("#334155", 4, [(-80, height - 168), (200, height - 238), (470, height - 180), (780, height - 270), (width + 85, height - 215)]),
+            ("#334155", 5, [(width - 440, -70), (width - 300, 115), (width - 110, 185), (width + 80, 340)]),
+            ("#334155", 3, [(70, height * 0.52), (210, height * 0.46), (360, height * 0.54), (540, height * 0.48)]),
+            ("#334155", 3, [(width * 0.20, 42), (width * 0.31, 92), (width * 0.43, 48), (width * 0.58, 104)]),
+            ("#334155", 2, [(width * 0.60, height - 78), (width * 0.72, height - 135), (width * 0.84, height - 92), (width * 0.96, height - 150)]),
         ]
 
         for color, line_width, points in ribbons:
@@ -936,22 +488,22 @@ class AnimeTrackerApp(ctk.CTk):
             background.create_line(*coords, fill=color, width=line_width, smooth=True, capstyle=tk.ROUND)
 
         marks = [
-            (width * 0.48, 76, colors["line_strong"]),
-            (width * 0.72, 316, colors["line_strong"]),
-            (width * 0.16, height * 0.56, colors["line_strong"]),
-            (width * 0.86, height * 0.62, colors["line_strong"]),
-            (width - 128, 78, colors["line_strong"]),
-            (138, 284, colors["line_strong"]),
+            (width * 0.48, 76, "#475569"),
+            (width * 0.72, 316, "#475569"),
+            (width * 0.16, height * 0.56, "#475569"),
+            (width * 0.86, height * 0.62, "#475569"),
+            (width - 128, 78, "#475569"),
+            (138, 284, "#475569"),
         ]
 
         for x, y, color in marks:
             background.create_oval(x - 5, y - 5, x + 5, y + 5, fill=color, outline="")
-            background.create_line(x - 12, y, x + 12, y, fill=colors["muted"], width=2)
-            background.create_line(x, y - 12, x, y + 12, fill=colors["muted"], width=2)
+            background.create_line(x - 12, y, x + 12, y, fill="#64748b", width=2)
+            background.create_line(x, y - 12, x, y + 12, fill="#64748b", width=2)
 
         for x in range(38, width, 235):
             y = 36 + (x % 4) * 31
-            background.create_arc(x, y, x + 58, y + 58, start=18, extent=252, outline=colors["line"], width=2, style=tk.ARC)
+            background.create_arc(x, y, x + 58, y + 58, start=18, extent=252, outline="#334155", width=2, style=tk.ARC)
 
         title_lines = [
             (width * 0.39, height * 0.36, 74),
@@ -960,21 +512,21 @@ class AnimeTrackerApp(ctk.CTk):
         ]
 
         for x, y, length in title_lines:
-            background.create_line(x - length / 2, y, x + length / 2, y, fill=colors["line"], width=5, capstyle=tk.ROUND)
+            background.create_line(x - length / 2, y, x + length / 2, y, fill="#334155", width=5, capstyle=tk.ROUND)
 
         if background is getattr(self, "content_background", None) and self.current_view == "main":
             background.create_text(
                 width / 2,
                 118,
                 text="Anime Tracker",
-                fill=colors["text"],
+                fill="#f1f5f9",
                 font=(self.font_family, 38, "bold")
             )
             background.create_text(
                 width / 2,
                 180,
-                text=self._t("app_subtitle"),
-                fill=colors["muted"],
+                text="Tu biblioteca de anime, organizada y lista para seguir mirando.",
+                fill="#94a3b8",
                 font=(self.font_family, 13, "bold")
             )
 
@@ -983,17 +535,17 @@ class AnimeTrackerApp(ctk.CTk):
                 width / 2,
                 height - 30,
                 text=self._page_info_text,
-                fill=colors["text"],
+                fill="#f1f5f9",
                 font=(self.font_family, 15, "bold"),
                 anchor="center"
             )
 
-            prev_fill = colors["text"] if self._nav_prev_enabled else colors["disabled"]
-            next_fill = colors["text"] if self._nav_next_enabled else colors["disabled"]
+            prev_fill = "#f1f5f9" if self._nav_prev_enabled else "#475569"
+            next_fill = "#f1f5f9" if self._nav_next_enabled else "#475569"
             background.create_text(
                 width - 230,
                 height - 30,
-                text=f"< {self._t('previous')}",
+                text="← Anterior",
                 fill=prev_fill,
                 font=(self.font_family, 15, "bold"),
                 anchor="center",
@@ -1002,7 +554,7 @@ class AnimeTrackerApp(ctk.CTk):
             background.create_text(
                 width - 100,
                 height - 30,
-                text=f"{self._t('next')} >",
+                text="Siguiente →",
                 fill=next_fill,
                 font=(self.font_family, 15, "bold"),
                 anchor="center",
@@ -1036,16 +588,14 @@ class AnimeTrackerApp(ctk.CTk):
             self.bottom_background.itemconfigure("nav_prev", fill="#60a5fa")
 
     def _on_nav_prev_leave(self, event):
-        colors = self._colors()
-        self.bottom_background.itemconfigure("nav_prev", fill=colors["text"] if self._nav_prev_enabled else colors["disabled"])
+        self.bottom_background.itemconfigure("nav_prev", fill="#f1f5f9" if self._nav_prev_enabled else "#475569")
 
     def _on_nav_next_enter(self, event):
         if self._nav_next_enabled:
             self.bottom_background.itemconfigure("nav_next", fill="#60a5fa")
 
     def _on_nav_next_leave(self, event):
-        colors = self._colors()
-        self.bottom_background.itemconfigure("nav_next", fill=colors["text"] if self._nav_next_enabled else colors["disabled"])
+        self.bottom_background.itemconfigure("nav_next", fill="#f1f5f9" if self._nav_next_enabled else "#475569")
 
     def _style_scroll_background(self, scroll_frame):
         try:
@@ -1054,12 +604,7 @@ class AnimeTrackerApp(ctk.CTk):
         except AttributeError:
             return
 
-        colors = self._colors()
-        canvas.configure(bg=colors["bg"], highlightthickness=0, bd=0)
-        try:
-            inner_frame.configure(fg_color=colors["bg"])
-        except (ValueError, tk.TclError, AttributeError):
-            pass
+        canvas.configure(bg="#0f172a", highlightthickness=0, bd=0)
 
     def _bind_dropdown_close(self, toplevel, callback):
         pass
@@ -1181,8 +726,7 @@ class AnimeTrackerApp(ctk.CTk):
         if w <= 1 or h <= 1:
             return
         canvas.delete("estado_bg")
-        colors = self._colors()
-        canvas.configure(bg=colors["surface"], highlightthickness=1, highlightbackground=colors["line_strong"])
+        canvas.configure(bg="#1e293b", highlightthickness=1, highlightbackground="#475569")
 
     def _draw_scroll_score_style(self, canvas):
         if not canvas.winfo_exists():
@@ -1197,8 +741,7 @@ class AnimeTrackerApp(ctk.CTk):
         if w <= 1 or h <= 1:
             return
         canvas.delete("score_bg")
-        colors = self._colors()
-        canvas.configure(bg=colors["surface"], highlightthickness=1, highlightbackground=colors["line_strong"])
+        canvas.configure(bg="#1e293b", highlightthickness=1, highlightbackground="#475569")
 
     def _draw_scroll_background(self, canvas):
         if not canvas.winfo_exists():
@@ -1208,19 +751,18 @@ class AnimeTrackerApp(ctk.CTk):
         height = canvas.winfo_height()
         canvas.delete("scroll_bg")
 
-        colors = self._colors()
-        canvas.create_rectangle(0, 0, width, height, fill=colors["bg"], outline="", tags="scroll_bg")
+        canvas.create_rectangle(0, 0, width, height, fill=self.background_color, outline="", tags="scroll_bg")
 
         for x in range(24, max(width, 1), 145):
-            canvas.create_line(x, 0, x - 78, height, fill=colors["surface"], width=1, tags="scroll_bg")
+            canvas.create_line(x, 0, x - 78, height, fill="#1e293b", width=1, tags="scroll_bg")
 
         for y in range(58, max(height, 1), 124):
-            canvas.create_line(0, y, width, y - 42, fill=colors["surface"], width=1, tags="scroll_bg")
+            canvas.create_line(0, y, width, y - 42, fill="#1e293b", width=1, tags="scroll_bg")
 
         paths = [
-            (colors["line"], 3, [(-40, 62), (width * 0.20, 26), (width * 0.42, 70), (width * 0.65, 36), (width + 40, 84)]),
-            (colors["line"], 3, [(-35, height - 78), (width * 0.22, height - 118), (width * 0.47, height - 88), (width * 0.76, height - 132), (width + 34, height - 96)]),
-            (colors["line"], 2, [(width - 225, 10), (width - 140, 96), (width - 42, 118), (width + 28, 205)]),
+            ("#334155", 3, [(-40, 62), (width * 0.20, 26), (width * 0.42, 70), (width * 0.65, 36), (width + 40, 84)]),
+            ("#334155", 3, [(-35, height - 78), (width * 0.22, height - 118), (width * 0.47, height - 88), (width * 0.76, height - 132), (width + 34, height - 96)]),
+            ("#334155", 2, [(width - 225, 10), (width - 140, 96), (width - 42, 118), (width + 28, 205)]),
         ]
 
         for color, line_width, points in paths:
@@ -1228,14 +770,14 @@ class AnimeTrackerApp(ctk.CTk):
             canvas.create_line(*coords, fill=color, width=line_width, smooth=True, capstyle=tk.ROUND, tags="scroll_bg")
 
         for x, y, color in [
-            (width * 0.36, 64, colors["line_strong"]),
-            (width * 0.68, 112, colors["line_strong"]),
-            (width * 0.18, height - 86, colors["line_strong"]),
-            (width * 0.86, height - 68, colors["line_strong"]),
+            (width * 0.36, 64, "#475569"),
+            (width * 0.68, 112, "#475569"),
+            (width * 0.18, height - 86, "#475569"),
+            (width * 0.86, height - 68, "#475569"),
         ]:
             canvas.create_oval(x - 4, y - 4, x + 4, y + 4, fill=color, outline="", tags="scroll_bg")
-            canvas.create_line(x - 10, y, x + 10, y, fill=colors["muted"], width=2, tags="scroll_bg")
-            canvas.create_line(x, y - 10, x, y + 10, fill=colors["muted"], width=2, tags="scroll_bg")
+            canvas.create_line(x - 10, y, x + 10, y, fill="#64748b", width=2, tags="scroll_bg")
+            canvas.create_line(x, y - 10, x, y + 10, fill="#64748b", width=2, tags="scroll_bg")
 
         canvas.tag_lower("scroll_bg")
 
@@ -1261,7 +803,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         self.loading_status_label = ctk.CTkLabel(
             loading_frame,
-            text=self._t("loading_catalog"),
+            text="Preparando catalogo...",
             text_color="#64748b",
             font=ctk.CTkFont(family=self.font_family, size=12, weight="bold")
         )
@@ -1269,10 +811,10 @@ class AnimeTrackerApp(ctk.CTk):
         self._transparent_widget_backgrounds(self.content_frame)
 
     def _preload_anime_items(self):
-        self._set_loading_status(self._t("loading_anilist"))
+        self._set_loading_status("Cargando datos de AniList...")
         animes = obtener_animes_populares(ANIMES_POPULARES_TOTAL)
         first_batch = animes[:self.initial_image_preload_count]
-        self._set_loading_status(self._t("loading_covers_start", count=len(first_batch)))
+        self._set_loading_status(f"Precargando portadas 1-{len(first_batch)}...")
         self._preload_anime_images(first_batch, max_workers=12)
         self.after(0, lambda: self._finish_preload(animes))
 
@@ -1345,7 +887,7 @@ class AnimeTrackerApp(ctk.CTk):
             for future in as_completed(futures):
                 loaded += 1
                 if loaded % 25 == 0 or loaded == len(urls):
-                    self._set_loading_status(self._t("loading_covers_progress", loaded=loaded, total=len(urls)))
+                    self._set_loading_status(f"Precargando portadas {loaded}/{len(urls)}...")
 
                 try:
                     future.result()
@@ -1375,8 +917,8 @@ class AnimeTrackerApp(ctk.CTk):
             self.content_frame,
             x=start_x,
             y=230,
-            title=self._t("add_anime"),
-            detail=self._t("add_detail"),
+            title="Agregar anime",
+            detail="Buscar y sumar series",
             color="#2563eb",
             hover="#1d4ed8",
             command=self.show_add_anime_view
@@ -1386,8 +928,8 @@ class AnimeTrackerApp(ctk.CTk):
             self.content_frame,
             x=start_x + card_w + gap,
             y=230,
-            title=self._t("saved_anime"),
-            detail=self._t("saved_detail"),
+            title="Ver animes guardados",
+            detail="Revisar y editar progreso",
             color="#0f766e",
             hover="#115e59",
             command=self.show_saved_anime_view
@@ -1396,17 +938,16 @@ class AnimeTrackerApp(ctk.CTk):
 
         exit_button = ctk.CTkButton(
             self.bottom_bar,
-            text=self._t("exit"),
+            text="Salir",
             width=150,
             height=46,
-            fg_color=self._colors()["surface_alt"],
-            hover_color=self._colors()["line_strong"],
-            text_color=self._colors()["text"],
+            fg_color="#475569",
+            hover_color="#64748b",
+            text_color="#ffffff",
             font=ctk.CTkFont(family=self.font_family, size=16, weight="bold"),
             command=self.destroy
         )
         exit_button.grid(row=0, column=2, sticky="e", padx=32, pady=0)
-        self._show_settings_button()
         self._draw_background(self.bottom_background)
         self._transparent_widget_backgrounds(self.content_frame)
         self._transparent_widget_backgrounds(self.bottom_bar)
@@ -1415,7 +956,6 @@ class AnimeTrackerApp(ctk.CTk):
         self.current_view = "saved"
         self._clear_view()
         self.title("ANIME TRACKER")
-        colors = self._colors()
         self.saved_all_items = obtener_animes_usuario()
         self.saved_items = self.saved_all_items
         self.saved_page = 0
@@ -1433,24 +973,24 @@ class AnimeTrackerApp(ctk.CTk):
         header_frame.grid_columnconfigure(1, weight=0)
         header_frame.grid_columnconfigure(2, weight=0)
         header_frame.grid_propagate(False)
-        self._attach_header_background(header_frame, self._t("saved_header"), self._t("saved_subtitle"))
+        self._attach_header_background(header_frame, "Animes guardados", "Revisá tu progreso, capítulos vistos y estado actual.")
 
         self.saved_search_entry = ctk.CTkEntry(
             header_frame,
             width=300,
             height=42,
-            placeholder_text=self._t("saved_search"),
+            placeholder_text="Buscar guardado...",
             fg_color="transparent",
             border_width=2,
-            border_color=colors["line_strong"],
-            text_color=colors["text"],
-            placeholder_text_color=self._placeholder_color(),
+            border_color="#64748b",
+            text_color="#f1f5f9",
+            placeholder_text_color="#94a3b8",
             font=ctk.CTkFont(family=self.font_family, size=14)
         )
         self.saved_search_entry.grid(row=0, column=1, padx=(0, 12), pady=(14, 0))
         self.saved_search_entry.bind("<KeyRelease>", self._on_saved_filter_changed)
 
-        filter_frame = ctk.CTkFrame(header_frame, fg_color="transparent", border_width=2, border_color=colors["line_strong"], corner_radius=6, width=164, height=46)
+        filter_frame = ctk.CTkFrame(header_frame, fg_color="transparent", border_width=2, border_color="#64748b", corner_radius=6, width=164, height=46)
         filter_frame.grid(row=0, column=2, pady=(14, 0))
         filter_frame.grid_propagate(False)
 
@@ -1458,25 +998,25 @@ class AnimeTrackerApp(ctk.CTk):
             filter_frame,
             width=160,
             height=42,
-            values=[self._t("all"), *self._user_status_options()],
-            fg_color=colors["surface"],
-            button_color=colors["surface_alt"],
-            button_hover_color=colors["line_strong"],
-            text_color=colors["text"],
+            values=["Todos", "En proceso", "Completo", "Planeado", "En espera", "Abandonado"],
+            fg_color="#1e293b",
+            button_color="#475569",
+            button_hover_color="#64748b",
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14),
             command=lambda _: self._apply_saved_filter()
         )
         self.saved_state_filter.grid(row=0, column=0, padx=2, pady=2)
-        self.saved_state_filter.set(self._t("all"))
+        self.saved_state_filter.set("Todos")
 
         self.saved_grid = ctk.CTkScrollableFrame(
             self.saved_frame,
-            fg_color=colors["bg"],
+            fg_color="#0f172a",
             width=1138,
             height=520,
             border_width=0,
-            scrollbar_button_color=colors["line"],
-            scrollbar_button_hover_color=colors["line_strong"]
+            scrollbar_button_color="#334155",
+            scrollbar_button_hover_color="#475569"
         )
         self.saved_grid.grid(row=1, column=0, sticky="nsew")
         self._style_scroll_background(self.saved_grid)
@@ -1493,15 +1033,14 @@ class AnimeTrackerApp(ctk.CTk):
         self._transparent_widget_backgrounds(self.bottom_bar)
 
     def _create_saved_bottom_bar(self):
-        colors = self._colors()
         back_button = ctk.CTkButton(
             self.bottom_bar,
-            text=self._t("back"),
+            text="Volver",
             width=120,
             height=38,
-            fg_color=colors["surface_alt"],
-            hover_color=colors["line_strong"],
-            text_color=colors["text"],
+            fg_color="#475569",
+            hover_color="#64748b",
+            text_color="#ffffff",
             font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
             command=self.show_main_view
         )
@@ -1527,8 +1066,7 @@ class AnimeTrackerApp(ctk.CTk):
         for anime in self.saved_all_items:
             nombre = anime["nombre"].lower()
             coincide_nombre = query in nombre
-            estado_value = self._user_status_value(estado)
-            coincide_estado = estado == self._t("all") or anime["estado"] == estado_value
+            coincide_estado = estado == "Todos" or anime["estado"] == estado
 
             if coincide_nombre and coincide_estado:
                 self.saved_items.append(anime)
@@ -1561,8 +1099,8 @@ class AnimeTrackerApp(ctk.CTk):
         if not page_items:
             empty_label = ctk.CTkLabel(
                 self.saved_grid,
-                text=self._t("no_saved"),
-                text_color=self._colors()["muted"],
+                text="No hay animes guardados para mostrar.",
+                text_color="#94a3b8",
                 font=ctk.CTkFont(family=self.font_family, size=16)
             )
             empty_label.grid(row=0, column=0, columnspan=self.saved_columns, pady=90)
@@ -1599,7 +1137,7 @@ class AnimeTrackerApp(ctk.CTk):
 
     def _update_saved_page_controls(self):
         if not self.saved_items:
-            self._page_info_text = self._t("no_page_results")
+            self._page_info_text = "Sin resultados"
             self._nav_prev_enabled = False
             self._nav_next_enabled = False
             self._redraw_bottom_text()
@@ -1608,14 +1146,13 @@ class AnimeTrackerApp(ctk.CTk):
         total_pages = self._total_saved_pages()
         start = self.saved_page * self.saved_page_size + 1
         end = min((self.saved_page + 1) * self.saved_page_size, len(self.saved_items))
-        self._page_info_text = self._t("page", page=self.saved_page + 1, total=total_pages, start=start, end=end, count=len(self.saved_items))
+        self._page_info_text = f"Pagina {self.saved_page + 1}/{total_pages} · {start}-{end} de {len(self.saved_items)}"
 
         self._nav_prev_enabled = self.saved_page > 0
         self._nav_next_enabled = self.saved_page < total_pages - 1
         self._redraw_bottom_text()
 
     def _create_saved_anime_card(self, parent, anime, row, column):
-        colors = self._colors()
         card_width = 338 if self.saved_editor_open else 350
         text_width = 206 if self.saved_editor_open else 218
 
@@ -1623,10 +1160,10 @@ class AnimeTrackerApp(ctk.CTk):
             parent,
             width=card_width,
             height=176,
-            fg_color=colors["surface"],
+            fg_color="#1e293b",
             corner_radius=8,
             border_width=2,
-            border_color=colors["line_strong"]
+            border_color="#475569"
         )
         card.grid(row=row, column=column, padx=12, pady=12, sticky="n")
         card.grid_propagate(False)
@@ -1636,11 +1173,11 @@ class AnimeTrackerApp(ctk.CTk):
         image_url = anime.get("imagen")
         image_label = ctk.CTkLabel(
             card,
-            text=self._t("loading"),
+            text="Cargando...",
             width=76,
             height=108,
-            fg_color=self._input_color(),
-            text_color=self._placeholder_color(),
+            fg_color="#0f172a",
+            text_color="#64748b",
             corner_radius=7,
             font=ctk.CTkFont(family=self.font_family, size=11)
         )
@@ -1650,13 +1187,13 @@ class AnimeTrackerApp(ctk.CTk):
         if image_url:
             self._load_card_image(image_url, image_label, size=(76, 108))
         else:
-            self._clear_card_image(image_label, self._t("no_image"))
+            self._clear_card_image(image_label, "Sin imagen")
 
         title = self._shorten_saved_name(anime["nombre"])
         title_label = ctk.CTkLabel(
             card,
             text=title,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             width=text_width,
             height=48,
             wraplength=text_width,
@@ -1667,11 +1204,11 @@ class AnimeTrackerApp(ctk.CTk):
         title_label.grid(row=0, column=1, sticky="ew", padx=(0, 16), pady=(16, 6))
 
         caps_totales = anime["caps_totales"] if anime["caps_totales"] is not None else "?"
-        caps_text = f"{self._t('episodes')}: {anime['caps_vistos']}/{caps_totales}"
+        caps_text = f"Capitulos: {anime['caps_vistos']}/{caps_totales}"
         caps_label = ctk.CTkLabel(
             card,
             text=caps_text,
-            text_color=colors["muted"],
+            text_color="#94a3b8",
             anchor="w",
             font=ctk.CTkFont(family=self.font_family, size=14)
         )
@@ -1683,7 +1220,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         estado_label = ctk.CTkLabel(
             footer_frame,
-            text=self._estado_usuario_label(anime["estado"]),
+            text=anime["estado"],
             text_color="#ffffff",
             fg_color=self._state_color(anime["estado"]),
             corner_radius=8,
@@ -1695,7 +1232,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         score_label = ctk.CTkLabel(
             footer_frame,
-            text=self._t("score", score=anime["score"]),
+            text=f"Score: {anime['score']}",
             text_color="#fbbf24",
             font=ctk.CTkFont(family=self.font_family, size=13, weight="bold")
         )
@@ -1741,9 +1278,6 @@ class AnimeTrackerApp(ctk.CTk):
         self._apply_saved_highlight()
 
     def _build_saved_panel(self, anime):
-        colors = self._colors()
-        input_color = self._input_color()
-        chip_text = self._chip_text_color()
         for index, saved_anime in enumerate(self.saved_items):
             if saved_anime["id"] == anime["id"]:
                 self.saved_page = index // self.saved_page_size
@@ -1753,12 +1287,12 @@ class AnimeTrackerApp(ctk.CTk):
             self.saved_frame,
             width=430,
             height=520,
-            fg_color=colors["surface"],
+            fg_color="#1e293b",
             corner_radius=8,
             border_width=2,
-            border_color=colors["line_strong"],
-            scrollbar_button_color=colors["line"],
-            scrollbar_button_hover_color=colors["line_strong"]
+            border_color="#475569",
+            scrollbar_button_color="#334155",
+            scrollbar_button_hover_color="#475569"
         )
         panel.grid(row=1, column=1, sticky="nsew", padx=(18, 0))
         panel.grid_columnconfigure(0, weight=1)
@@ -1767,12 +1301,12 @@ class AnimeTrackerApp(ctk.CTk):
 
         close_button = ctk.CTkButton(
             panel,
-            text=self._t("close"),
+            text="Cerrar",
             width=92,
             height=34,
-            fg_color=colors["surface_alt"],
-            hover_color=colors["line_strong"],
-            text_color=colors["text"],
+            fg_color="#475569",
+            hover_color="#64748b",
+            text_color="#ffffff",
             font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
             command=self._close_saved_editor
         )
@@ -1780,11 +1314,11 @@ class AnimeTrackerApp(ctk.CTk):
 
         image_label = ctk.CTkLabel(
             panel,
-            text=self._t("loading"),
+            text="Cargando...",
             width=150,
             height=212,
-            fg_color=input_color,
-            text_color=self._placeholder_color(),
+            fg_color="#0f172a",
+            text_color="#64748b",
             corner_radius=8,
             font=ctk.CTkFont(family=self.font_family, size=12)
         )
@@ -1794,12 +1328,12 @@ class AnimeTrackerApp(ctk.CTk):
         if anime.get("imagen"):
             self._load_card_image(anime["imagen"], image_label, size=(150, 212))
         else:
-            self._clear_card_image(image_label, self._t("no_image"))
+            self._clear_card_image(image_label, "Sin imagen")
 
         title_label = ctk.CTkLabel(
             panel,
             text=anime["nombre"],
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             width=350,
             height=66,
             wraplength=350,
@@ -1852,8 +1386,8 @@ class AnimeTrackerApp(ctk.CTk):
         self.saved_caps_progress_label = ctk.CTkLabel(
             form_frame,
             text=f"{anime['caps_vistos']}/{caps_totales}",
-            text_color=chip_text,
-            fg_color=colors["surface_alt"],
+            text_color="#ffffff",
+            fg_color="#334155",
             corner_radius=7,
             width=86,
             height=28,
@@ -1865,7 +1399,7 @@ class AnimeTrackerApp(ctk.CTk):
         saved_caps_border = tk.Frame(
             form_frame,
             height=50,
-            bg=colors["line_strong"],
+            bg="#000000",
             bd=0,
             highlightthickness=0
         )
@@ -1874,7 +1408,7 @@ class AnimeTrackerApp(ctk.CTk):
         saved_caps_border.grid_propagate(False)
 
         # Dropdown personalizado con scroll
-        caps_input_frame = ctk.CTkFrame(saved_caps_border, fg_color=input_color, border_width=0, corner_radius=6)
+        caps_input_frame = ctk.CTkFrame(saved_caps_border, fg_color="#0f172a", border_width=0, corner_radius=6)
         caps_input_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         caps_input_frame.grid_columnconfigure(0, weight=1)
         caps_input_frame.grid_columnconfigure(1, weight=0)
@@ -1885,7 +1419,7 @@ class AnimeTrackerApp(ctk.CTk):
             height=42,
             fg_color="transparent",
             border_width=0,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             justify="left"
         )
@@ -1899,9 +1433,9 @@ class AnimeTrackerApp(ctk.CTk):
             text="▼",
             width=24,
             height=42,
-            fg_color=input_color,
-            hover_color=colors["surface_alt"],
-            text_color=colors["text"],
+            fg_color="#0f172a",
+            hover_color="#334155",
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             command=self._show_saved_caps_dropdown
         )
@@ -1911,9 +1445,9 @@ class AnimeTrackerApp(ctk.CTk):
 
         estado_label = ctk.CTkLabel(
             form_frame,
-            text=self._t("state"),
-            text_color=chip_text,
-            fg_color=colors["surface_alt"],
+            text="Estado",
+            text_color="#ffffff",
+            fg_color="#334155",
             corner_radius=7,
             width=82,
             height=28,
@@ -1924,7 +1458,7 @@ class AnimeTrackerApp(ctk.CTk):
         saved_estado_border = tk.Frame(
             form_frame,
             height=50,
-            bg=colors["line_strong"],
+            bg="#000000",
             bd=0,
             highlightthickness=0
         )
@@ -1932,7 +1466,7 @@ class AnimeTrackerApp(ctk.CTk):
         saved_estado_border.grid_columnconfigure(0, weight=1)
         saved_estado_border.grid_propagate(False)
 
-        saved_estado_input_frame = ctk.CTkFrame(saved_estado_border, fg_color=input_color, border_width=0, corner_radius=6)
+        saved_estado_input_frame = ctk.CTkFrame(saved_estado_border, fg_color="#0f172a", border_width=0, corner_radius=6)
         saved_estado_input_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         saved_estado_input_frame.grid_columnconfigure(0, weight=1)
         saved_estado_input_frame.grid_columnconfigure(1, weight=0)
@@ -1943,13 +1477,13 @@ class AnimeTrackerApp(ctk.CTk):
             height=42,
             fg_color="transparent",
             border_width=0,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             justify="left"
         )
         self.saved_estado_entry.grid(row=0, column=0, sticky="ew", padx=(4, 0))
         saved_estado_value = anime.get("estado") or "Planeado"
-        self.saved_estado_entry.insert(0, self._user_status_label(saved_estado_value))
+        self.saved_estado_entry.insert(0, saved_estado_value)
         self.saved_estado_entry.configure(state="readonly")
 
         saved_estado_arrow_btn = ctk.CTkButton(
@@ -1957,9 +1491,9 @@ class AnimeTrackerApp(ctk.CTk):
             text="▼",
             width=24,
             height=42,
-            fg_color=input_color,
-            hover_color=colors["surface_alt"],
-            text_color=colors["text"],
+            fg_color="#0f172a",
+            hover_color="#334155",
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             command=self._show_saved_estado_dropdown
         )
@@ -1969,9 +1503,9 @@ class AnimeTrackerApp(ctk.CTk):
 
         score_label = ctk.CTkLabel(
             form_frame,
-            text=self._t("score_label"),
-            text_color=chip_text,
-            fg_color=colors["surface_alt"],
+            text="Score",
+            text_color="#ffffff",
+            fg_color="#334155",
             corner_radius=7,
             width=68,
             height=28,
@@ -1983,7 +1517,7 @@ class AnimeTrackerApp(ctk.CTk):
         saved_score_border = tk.Frame(
             form_frame,
             height=50,
-            bg=colors["line_strong"],
+            bg="#000000",
             bd=0,
             highlightthickness=0
         )
@@ -1991,7 +1525,7 @@ class AnimeTrackerApp(ctk.CTk):
         saved_score_border.grid_columnconfigure(0, weight=1)
         saved_score_border.grid_propagate(False)
 
-        saved_score_input_frame = ctk.CTkFrame(saved_score_border, fg_color=input_color, border_width=0, corner_radius=6)
+        saved_score_input_frame = ctk.CTkFrame(saved_score_border, fg_color="#0f172a", border_width=0, corner_radius=6)
         saved_score_input_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         saved_score_input_frame.grid_columnconfigure(0, weight=1)
         saved_score_input_frame.grid_columnconfigure(1, weight=0)
@@ -2002,7 +1536,7 @@ class AnimeTrackerApp(ctk.CTk):
             height=42,
             fg_color="transparent",
             border_width=0,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             justify="left"
         )
@@ -2017,9 +1551,9 @@ class AnimeTrackerApp(ctk.CTk):
             text="▼",
             width=24,
             height=42,
-            fg_color=input_color,
-            hover_color=colors["surface_alt"],
-            text_color=colors["text"],
+            fg_color="#0f172a",
+            hover_color="#334155",
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             command=self._show_saved_score_dropdown
         )
@@ -2044,7 +1578,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         save_button = ctk.CTkButton(
             action_frame,
-            text=self._t("save_changes"),
+            text="Guardar cambios",
             height=44,
             fg_color="#2563eb",
             hover_color="#1d4ed8",
@@ -2056,7 +1590,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         delete_button = ctk.CTkButton(
             action_frame,
-            text=self._t("delete"),
+            text="Eliminar",
             height=44,
             fg_color="#dc2626",
             hover_color="#b91c1c",
@@ -2077,7 +1611,7 @@ class AnimeTrackerApp(ctk.CTk):
             ad = getattr(widget, "anime_data", None)
             if ad and ad.get("id") == target:
                 try:
-                    widget.configure(fg_color=self._colors()["surface"], border_color="#22c55e")
+                    widget.configure(fg_color="#1e293b", border_color="#22c55e")
                 except (ValueError, tk.TclError):
                     pass
                 break
@@ -2142,7 +1676,6 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         self._close_all_dropdowns()
-        colors = self._colors()
 
         max_val = self.saved_caps_max if self.saved_caps_max is not None else 9999
         values = list(range(0, max_val + 1))
@@ -2166,9 +1699,9 @@ class AnimeTrackerApp(ctk.CTk):
             self.saved_caps_dropdown,
             width=95,
             height=dropdown_height,
-            fg_color=colors["surface"],
-            scrollbar_button_color=colors["line_strong"],
-            scrollbar_button_hover_color=colors["muted"]
+            fg_color="#1e293b",
+            scrollbar_button_color="#475569",
+            scrollbar_button_hover_color="#64748b"
         )
         scroll_frame.pack()
 
@@ -2179,8 +1712,8 @@ class AnimeTrackerApp(ctk.CTk):
                 width=76,
                 height=28,
                 fg_color="transparent",
-                hover_color=colors["surface_alt"],
-                text_color=colors["text"],
+                hover_color="#334155",
+                text_color="#f1f5f9",
                 font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
                 command=lambda v=val: self._select_saved_caps_value(v)
             )
@@ -2210,9 +1743,8 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         self._close_all_dropdowns()
-        colors = self._colors()
 
-        estados = self._user_status_options()
+        estados = ["En proceso", "Completo", "Planeado", "En espera", "Abandonado"]
 
         try:
             entry_x = self.saved_estado_entry.winfo_rootx()
@@ -2229,9 +1761,9 @@ class AnimeTrackerApp(ctk.CTk):
             self.saved_estado_dropdown,
             width=180,
             height=len(estados) * 28,
-            bg=colors["surface"],
+            bg="#1e293b",
             highlightthickness=1,
-            highlightbackground=colors["line_strong"]
+            highlightbackground="#475569"
         )
         frame.pack(fill="both", expand=False)
 
@@ -2242,8 +1774,8 @@ class AnimeTrackerApp(ctk.CTk):
                 width=170,
                 height=28,
                 fg_color="transparent",
-                hover_color=colors["surface_alt"],
-                text_color=colors["text"],
+                hover_color="#334155",
+                text_color="#f1f5f9",
                 font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
                 command=lambda v=estado: self._select_saved_estado_value(v)
             )
@@ -2270,7 +1802,6 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         self._close_all_dropdowns()
-        colors = self._colors()
 
         scores = [str(n) for n in range(1, 11)]
 
@@ -2289,13 +1820,13 @@ class AnimeTrackerApp(ctk.CTk):
             self.saved_score_dropdown,
             width=80,
             height=len(scores) * 28,
-            bg=colors["surface"],
+            bg="#1e293b",
             highlightthickness=1,
-            highlightbackground=colors["line_strong"]
+            highlightbackground="#475569"
         )
         canvas.pack(fill="both", expand=False)
 
-        frame = tk.Frame(canvas, bg=colors["surface"])
+        frame = tk.Frame(canvas, bg="#1e293b")
         frame_id = canvas.create_window((0, 0), window=frame, anchor="nw")
 
         for score in scores:
@@ -2305,8 +1836,8 @@ class AnimeTrackerApp(ctk.CTk):
                 width=70,
                 height=28,
                 fg_color="transparent",
-                hover_color=colors["surface_alt"],
-                text_color=colors["text"],
+                hover_color="#334155",
+                text_color="#f1f5f9",
                 font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
                 command=lambda v=score: self._select_saved_score_value(v)
             )
@@ -2336,9 +1867,9 @@ class AnimeTrackerApp(ctk.CTk):
         try:
             caps_vistos = int(self.saved_caps_entry.get())
             score = int(self.saved_score_entry.get())
-            estado_val = self._user_status_value(self.saved_estado_entry.get())
+            estado_val = self.saved_estado_entry.get()
         except ValueError:
-            self.saved_editor_message.configure(text=self._t("score_input_error"))
+            self.saved_editor_message.configure(text="Capitulos y score tienen que ser numeros.")
             return
 
         caps_totales = anime["caps_totales"]
@@ -2352,7 +1883,7 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         if score < 1 or score > 10:
-            self.saved_editor_message.configure(text=self._t("score_range_error"))
+            self.saved_editor_message.configure(text="El score tiene que estar entre 1 y 10.")
             return
 
         estado = estado_val
@@ -2387,8 +1918,7 @@ class AnimeTrackerApp(ctk.CTk):
         for anime in self.saved_all_items:
             nombre = anime["nombre"].lower()
             coincide_nombre = current_query in nombre
-            current_estado_value = self._user_status_value(current_estado)
-            coincide_estado = current_estado == self._t("all") or anime["estado"] == current_estado_value
+            coincide_estado = current_estado == "Todos" or anime["estado"] == current_estado
 
             if coincide_nombre and coincide_estado:
                 self.saved_items.append(anime)
@@ -2467,10 +1997,9 @@ class AnimeTrackerApp(ctk.CTk):
     def _clear_saved_highlight(self):
         self._highlighted_saved_id = None
         if hasattr(self, "saved_grid") and self.saved_grid.winfo_exists():
-            colors = self._colors()
             for widget in self.saved_grid.winfo_children():
                 try:
-                    widget.configure(fg_color=colors["surface"], border_color=colors["line_strong"])
+                    widget.configure(fg_color="#1e293b", border_color="#475569")
                 except (ValueError, tk.TclError):
                     pass
 
@@ -2492,66 +2021,19 @@ class AnimeTrackerApp(ctk.CTk):
         }
         return colors.get(estado, "#334155")
 
-    def _estado_usuario_label(self, estado):
-        labels = {
-            "en": {
-                "En proceso": "Watching",
-                "Completo": "Complete",
-                "Planeado": "Planned",
-                "En espera": "On hold",
-                "Abandonado": "Dropped",
-            },
-            "pt": {
-                "En proceso": "Assistindo",
-                "Completo": "Completo",
-                "Planeado": "Planejado",
-                "En espera": "Em espera",
-                "Abandonado": "Abandonado",
-            },
-        }
-        return labels.get(self.current_language, {}).get(estado, estado)
-
     def _estado_api_label(self, status):
-        texts = {
-            "es": {
-                "FINISHED": "Terminado",
-                "RELEASING": "En emision",
-                "NOT_YET_RELEASED": "No estrenado",
-                "CANCELLED": "Cancelado",
-                "HIATUS": "En pausa",
-                "UNKNOWN": "Desconocido",
-            },
-            "en": {
-                "FINISHED": "Finished",
-                "RELEASING": "Releasing",
-                "NOT_YET_RELEASED": "Upcoming",
-                "CANCELLED": "Cancelled",
-                "HIATUS": "Hiatus",
-                "UNKNOWN": "Unknown",
-            },
-            "pt": {
-                "FINISHED": "Finalizado",
-                "RELEASING": "Em exibicao",
-                "NOT_YET_RELEASED": "Nao estreou",
-                "CANCELLED": "Cancelado",
-                "HIATUS": "Em pausa",
-                "UNKNOWN": "Desconhecido",
-            },
+        labels = {
+            "FINISHED": {"text": "Terminado", "color": "#0f766e"},
+            "RELEASING": {"text": "En emisión", "color": "#2563eb"},
+            "NOT_YET_RELEASED": {"text": "No estrenado", "color": "#7c3aed"},
+            "CANCELLED": {"text": "Cancelado", "color": "#dc2626"},
+            "HIATUS": {"text": "En pausa", "color": "#f59e0b"}
         }
-        colors = {
-            "FINISHED": "#0f766e",
-            "RELEASING": "#2563eb",
-            "NOT_YET_RELEASED": "#7c3aed",
-            "CANCELLED": "#dc2626",
-            "HIATUS": "#f59e0b",
-        }
-        text_map = texts.get(self.current_language, texts["es"])
-        return {"text": text_map.get(status, text_map["UNKNOWN"]), "color": colors.get(status, "#64748b")}
+        return labels.get(status, {"text": "Desconocido", "color": "#64748b"})
     def show_add_anime_view(self):
         self.current_view = "add"
         self._clear_view()
         self.title("ANIME TRACKER")
-        colors = self._colors()
         self.all_anime_items = self.preloaded_anime_items
         self.anime_items = self.preloaded_anime_items
         self.search_after_id = None
@@ -2570,25 +2052,25 @@ class AnimeTrackerApp(ctk.CTk):
         header_frame.grid_columnconfigure(1, weight=0)
         header_frame.grid_columnconfigure(2, weight=0)
         header_frame.grid_propagate(False)
-        self._attach_header_background(header_frame, self._t("add_header"), self._t("add_subtitle"))
+        self._attach_header_background(header_frame, "Agregar anime", "Elegí uno de los animes populares para empezar a guardarlo.")
 
         self.search_entry = ctk.CTkEntry(
             header_frame,
             width=300,
             height=42,
-            placeholder_text=self._t("add_search"),
+            placeholder_text="Buscar anime...",
             fg_color="transparent",
             border_width=2,
-            border_color=colors["line_strong"],
-            text_color=colors["text"],
-            placeholder_text_color=self._placeholder_color(),
+            border_color="#64748b",
+            text_color="#f1f5f9",
+            placeholder_text_color="#94a3b8",
             font=ctk.CTkFont(family=self.font_family, size=14)
         )
         self.search_entry.grid(row=0, column=1, padx=(0, 12), pady=(14, 0))
         self.search_entry.configure(state="disabled")
         self.search_entry.bind("<KeyRelease>", self._on_search_changed)
 
-        filter_frame = ctk.CTkFrame(header_frame, fg_color="transparent", border_width=2, border_color=colors["line_strong"], corner_radius=6, width=154, height=46)
+        filter_frame = ctk.CTkFrame(header_frame, fg_color="transparent", border_width=2, border_color="#64748b", corner_radius=6, width=154, height=46)
         filter_frame.grid(row=0, column=2, pady=(14, 0))
         filter_frame.grid_propagate(False)
 
@@ -2596,16 +2078,16 @@ class AnimeTrackerApp(ctk.CTk):
             filter_frame,
             width=150,
             height=42,
-            values=[self._t("all"), *self._api_status_options()],
-            fg_color=colors["surface"],
-            button_color=colors["surface_alt"],
-            button_hover_color=colors["line_strong"],
-            text_color=colors["text"],
+            values=["Todos", "En emisión", "Terminado", "No estrenado", "Cancelado", "En pausa"],
+            fg_color="#1e293b",
+            button_color="#475569",
+            button_hover_color="#64748b",
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14),
             command=lambda _: self._apply_anime_filter()
         )
         self.add_status_filter.grid(row=0, column=0, padx=2, pady=2)
-        self.add_status_filter.set(self._t("all"))
+        self.add_status_filter.set("Todos")
 
         self._create_add_bottom_bar()
         self._show_anime_grid(self.preloaded_anime_items)
@@ -2615,15 +2097,14 @@ class AnimeTrackerApp(ctk.CTk):
         self._transparent_widget_backgrounds(self.bottom_bar)
 
     def _create_add_bottom_bar(self):
-        colors = self._colors()
         back_button = ctk.CTkButton(
             self.bottom_bar,
-            text=self._t("back"),
+            text="Volver",
             width=120,
             height=38,
-            fg_color=colors["surface_alt"],
-            hover_color=colors["line_strong"],
-            text_color=colors["text"],
+            fg_color="#475569",
+            hover_color="#64748b",
+            text_color="#ffffff",
             font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
             command=self.show_main_view
         )
@@ -2642,8 +2123,8 @@ class AnimeTrackerApp(ctk.CTk):
         if not self.anime_items:
             empty_label = ctk.CTkLabel(
                 self.add_frame,
-                text=self._t("no_add"),
-                text_color=self._colors()["muted"],
+                text="No hay animes disponibles para mostrar.",
+                text_color="#94a3b8",
                 font=ctk.CTkFont(family=self.font_family, size=16)
             )
             empty_label.grid(row=1, column=0, sticky="n", pady=(92, 0))
@@ -2651,12 +2132,12 @@ class AnimeTrackerApp(ctk.CTk):
 
         self.anime_scroll = ctk.CTkScrollableFrame(
             self.add_frame,
-            fg_color=self._colors()["bg"],
+            fg_color="#0f172a",
             width=1138,
             height=520,
             border_width=0,
-            scrollbar_button_color=self._colors()["line"],
-            scrollbar_button_hover_color=self._colors()["line_strong"]
+            scrollbar_button_color="#334155",
+            scrollbar_button_hover_color="#475569"
         )
         self.anime_scroll.grid(row=1, column=0, sticky="nsew")
         self._style_scroll_background(self.anime_scroll)
@@ -2681,7 +2162,14 @@ class AnimeTrackerApp(ctk.CTk):
         query = self.search_entry.get().strip().lower()
         status_filter = self.add_status_filter.get()
 
-        target_status = self._api_status_value(status_filter)
+        status_map = {
+            "En emisión": "RELEASING",
+            "Terminado": "FINISHED",
+            "No estrenado": "NOT_YET_RELEASED",
+            "Cancelado": "CANCELLED",
+            "En pausa": "HIATUS"
+        }
+        target_status = status_map.get(status_filter)
 
         filtered = self.all_anime_items
 
@@ -2712,7 +2200,7 @@ class AnimeTrackerApp(ctk.CTk):
 
     def _update_page_controls(self):
         if not self.anime_items:
-            self._page_info_text = self._t("no_page_results")
+            self._page_info_text = "Sin resultados"
             self._nav_prev_enabled = False
             self._nav_next_enabled = False
             self._redraw_bottom_text()
@@ -2721,7 +2209,7 @@ class AnimeTrackerApp(ctk.CTk):
         total_pages = self._total_anime_pages()
         start = self.anime_page * self.anime_page_size + 1
         end = min((self.anime_page + 1) * self.anime_page_size, len(self.anime_items))
-        self._page_info_text = self._t("page", page=self.anime_page + 1, total=total_pages, start=start, end=end, count=len(self.anime_items))
+        self._page_info_text = f"Pagina {self.anime_page + 1}/{total_pages} · {start}-{end} de {len(self.anime_items)}"
 
         self._nav_prev_enabled = self.anime_page > 0
         self._nav_next_enabled = self.anime_page < total_pages - 1
@@ -2773,8 +2261,8 @@ class AnimeTrackerApp(ctk.CTk):
         self.anime_card_slots = []
         self.no_results_label = ctk.CTkLabel(
             self.anime_scroll,
-            text=self._t("no_results"),
-            text_color=self._colors()["muted"],
+            text="No se encontraron animes con ese filtro.",
+            text_color="#94a3b8",
             font=ctk.CTkFont(family=self.font_family, size=16)
         )
         self.no_results_label.grid_remove()
@@ -2786,15 +2274,14 @@ class AnimeTrackerApp(ctk.CTk):
             self.anime_card_slots.append(slot)
 
     def _create_anime_card_slot(self, parent, row, column):
-        colors = self._colors()
         card = ctk.CTkFrame(
             parent,
             width=158,
             height=254,
-            fg_color=colors["surface"],
+            fg_color="#1e293b",
             corner_radius=8,
             border_width=2,
-            border_color=colors["line_strong"]
+            border_color="#475569"
         )
         card.grid(row=row, column=column, padx=10, pady=10, sticky="n")
         card.grid_propagate(False)
@@ -2802,11 +2289,11 @@ class AnimeTrackerApp(ctk.CTk):
 
         image_label = ctk.CTkLabel(
             card,
-            text=self._t("loading"),
+            text="Cargando...",
             width=118,
             height=166,
-            fg_color=self._input_color(),
-            text_color=self._placeholder_color(),
+            fg_color="#0f172a",
+            text_color="#64748b",
             corner_radius=7,
             font=ctk.CTkFont(family=self.font_family, size=12)
         )
@@ -2816,7 +2303,7 @@ class AnimeTrackerApp(ctk.CTk):
         name_label = ctk.CTkLabel(
             card,
             text="",
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             width=132,
             height=48,
             wraplength=132,
@@ -2874,9 +2361,6 @@ class AnimeTrackerApp(ctk.CTk):
         self._apply_add_highlight()
 
     def _build_add_panel(self, anime):
-        colors = self._colors()
-        input_color = self._input_color()
-        chip_text = self._chip_text_color()
         for index, add_anime in enumerate(self.anime_items):
             if add_anime.get("id") == anime.get("id"):
                 self.anime_page = index // self.anime_page_size
@@ -2886,12 +2370,12 @@ class AnimeTrackerApp(ctk.CTk):
             self.add_frame,
             width=430,
             height=520,
-            fg_color=colors["surface"],
+            fg_color="#1e293b",
             corner_radius=8,
             border_width=2,
-            border_color=colors["line_strong"],
-            scrollbar_button_color=colors["line"],
-            scrollbar_button_hover_color=colors["line_strong"]
+            border_color="#475569",
+            scrollbar_button_color="#334155",
+            scrollbar_button_hover_color="#475569"
         )
         panel.grid(row=1, column=1, sticky="nsew", padx=(18, 0))
         panel.grid_columnconfigure(0, weight=1)
@@ -2900,12 +2384,12 @@ class AnimeTrackerApp(ctk.CTk):
 
         close_button = ctk.CTkButton(
             panel,
-            text=self._t("close"),
+            text="Cerrar",
             width=92,
             height=34,
-            fg_color=colors["surface_alt"],
-            hover_color=colors["line_strong"],
-            text_color=colors["text"],
+            fg_color="#475569",
+            hover_color="#64748b",
+            text_color="#ffffff",
             font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
             command=self._close_add_panel
         )
@@ -2914,11 +2398,11 @@ class AnimeTrackerApp(ctk.CTk):
         image_url = anime.get("coverImage", {}).get("medium")
         image_label = ctk.CTkLabel(
             panel,
-            text=self._t("loading"),
+            text="Cargando...",
             width=132,
             height=186,
-            fg_color=input_color,
-            text_color=self._placeholder_color(),
+            fg_color="#0f172a",
+            text_color="#64748b",
             corner_radius=8,
             font=ctk.CTkFont(family=self.font_family, size=12)
         )
@@ -2928,13 +2412,13 @@ class AnimeTrackerApp(ctk.CTk):
         if image_url:
             self._load_card_image(image_url, image_label, size=(132, 186))
         else:
-            self._clear_card_image(image_label, self._t("no_image"))
+            self._clear_card_image(image_label, "Sin imagen")
 
         title = anime.get("title", {}).get("romaji", "Sin nombre")
         title_label = ctk.CTkLabel(
             panel,
             text=title,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             width=350,
             height=58,
             wraplength=350,
@@ -2972,9 +2456,9 @@ class AnimeTrackerApp(ctk.CTk):
 
         total_ep_label = ctk.CTkLabel(
             form_frame,
-            text=self._t("total_episodes", total=caps_total_text),
-            text_color=chip_text,
-            fg_color=colors["surface_alt"],
+            text=f"Capitulos totales: {caps_total_text}",
+            text_color="#ffffff",
+            fg_color="#334155",
             corner_radius=7,
             height=28,
             anchor="center",
@@ -2984,9 +2468,9 @@ class AnimeTrackerApp(ctk.CTk):
 
         caps_label = ctk.CTkLabel(
             form_frame,
-            text=self._t("episodes"),
-            text_color=chip_text,
-            fg_color=colors["surface_alt"],
+            text="Capitulos",
+            text_color="#ffffff",
+            fg_color="#334155",
             corner_radius=7,
             width=86,
             height=28,
@@ -2998,7 +2482,7 @@ class AnimeTrackerApp(ctk.CTk):
         add_caps_border = tk.Frame(
             form_frame,
             height=50,
-            bg=colors["line_strong"],
+            bg="#000000",
             bd=0,
             highlightthickness=0
         )
@@ -3006,7 +2490,7 @@ class AnimeTrackerApp(ctk.CTk):
         add_caps_border.grid_columnconfigure(0, weight=1)
         add_caps_border.grid_propagate(False)
 
-        caps_input_frame = ctk.CTkFrame(add_caps_border, fg_color=input_color, border_width=0, corner_radius=6)
+        caps_input_frame = ctk.CTkFrame(add_caps_border, fg_color="#0f172a", border_width=0, corner_radius=6)
         caps_input_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         caps_input_frame.grid_columnconfigure(0, weight=1)
         caps_input_frame.grid_columnconfigure(1, weight=0)
@@ -3017,7 +2501,7 @@ class AnimeTrackerApp(ctk.CTk):
             height=42,
             fg_color="transparent",
             border_width=0,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             justify="left"
         )
@@ -3031,9 +2515,9 @@ class AnimeTrackerApp(ctk.CTk):
             text="▼",
             width=24,
             height=42,
-            fg_color=input_color,
-            hover_color=colors["surface_alt"],
-            text_color=colors["text"],
+            fg_color="#0f172a",
+            hover_color="#334155",
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             command=self._show_add_caps_dropdown
         )
@@ -3046,9 +2530,9 @@ class AnimeTrackerApp(ctk.CTk):
 
         estado_label = ctk.CTkLabel(
             form_frame,
-            text=self._t("state"),
-            text_color=chip_text,
-            fg_color=colors["surface_alt"],
+            text="Estado",
+            text_color="#ffffff",
+            fg_color="#334155",
             corner_radius=7,
             width=82,
             height=28,
@@ -3060,7 +2544,7 @@ class AnimeTrackerApp(ctk.CTk):
         add_estado_border = tk.Frame(
             form_frame,
             height=50,
-            bg=colors["line_strong"],
+            bg="#000000",
             bd=0,
             highlightthickness=0
         )
@@ -3068,7 +2552,7 @@ class AnimeTrackerApp(ctk.CTk):
         add_estado_border.grid_columnconfigure(0, weight=1)
         add_estado_border.grid_propagate(False)
 
-        add_estado_input_frame = ctk.CTkFrame(add_estado_border, fg_color=input_color, border_width=0, corner_radius=6)
+        add_estado_input_frame = ctk.CTkFrame(add_estado_border, fg_color="#0f172a", border_width=0, corner_radius=6)
         add_estado_input_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         add_estado_input_frame.grid_columnconfigure(0, weight=1)
         add_estado_input_frame.grid_columnconfigure(1, weight=0)
@@ -3079,12 +2563,12 @@ class AnimeTrackerApp(ctk.CTk):
             height=42,
             fg_color="transparent",
             border_width=0,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             justify="left"
         )
         self.add_estado_entry.grid(row=0, column=0, sticky="ew", padx=(4, 0))
-        self.add_estado_entry.insert(0, self._user_status_label("Planeado"))
+        self.add_estado_entry.insert(0, "Planeado")
         self.add_estado_entry.configure(state="readonly")
 
         estado_arrow_btn = ctk.CTkButton(
@@ -3092,9 +2576,9 @@ class AnimeTrackerApp(ctk.CTk):
             text="▼",
             width=24,
             height=42,
-            fg_color=input_color,
-            hover_color=colors["surface_alt"],
-            text_color=colors["text"],
+            fg_color="#0f172a",
+            hover_color="#334155",
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             command=self._show_add_estado_dropdown
         )
@@ -3104,9 +2588,9 @@ class AnimeTrackerApp(ctk.CTk):
 
         score_label = ctk.CTkLabel(
             form_frame,
-            text=self._t("score_label"),
-            text_color=chip_text,
-            fg_color=colors["surface_alt"],
+            text="Score",
+            text_color="#ffffff",
+            fg_color="#334155",
             corner_radius=7,
             width=68,
             height=28,
@@ -3118,7 +2602,7 @@ class AnimeTrackerApp(ctk.CTk):
         add_score_border = tk.Frame(
             form_frame,
             height=50,
-            bg=colors["line_strong"],
+            bg="#000000",
             bd=0,
             highlightthickness=0
         )
@@ -3126,7 +2610,7 @@ class AnimeTrackerApp(ctk.CTk):
         add_score_border.grid_columnconfigure(0, weight=1)
         add_score_border.grid_propagate(False)
 
-        add_score_input_frame = ctk.CTkFrame(add_score_border, fg_color=input_color, border_width=0, corner_radius=6)
+        add_score_input_frame = ctk.CTkFrame(add_score_border, fg_color="#0f172a", border_width=0, corner_radius=6)
         add_score_input_frame.grid(row=0, column=0, sticky="ew", padx=4, pady=4)
         add_score_input_frame.grid_columnconfigure(0, weight=1)
         add_score_input_frame.grid_columnconfigure(1, weight=0)
@@ -3137,7 +2621,7 @@ class AnimeTrackerApp(ctk.CTk):
             height=42,
             fg_color="transparent",
             border_width=0,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             justify="left"
         )
@@ -3150,9 +2634,9 @@ class AnimeTrackerApp(ctk.CTk):
             text="▼",
             width=24,
             height=42,
-            fg_color=input_color,
-            hover_color=colors["surface_alt"],
-            text_color=colors["text"],
+            fg_color="#0f172a",
+            hover_color="#334155",
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold"),
             command=self._show_add_score_dropdown
         )
@@ -3173,7 +2657,7 @@ class AnimeTrackerApp(ctk.CTk):
 
         add_button = ctk.CTkButton(
             form_frame,
-            text=self._t("save_anime"),
+            text="Guardar anime",
             height=44,
             fg_color="#2563eb",
             hover_color="#1d4ed8",
@@ -3192,7 +2676,7 @@ class AnimeTrackerApp(ctk.CTk):
             a = slot.get("anime")
             if a and a.get("id") == target:
                 try:
-                    slot["card"].configure(fg_color=self._colors()["surface"], border_color="#22c55e")
+                    slot["card"].configure(fg_color="#1e293b", border_color="#22c55e")
                 except (ValueError, tk.TclError):
                     pass
                 break
@@ -3255,7 +2739,6 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         self._close_all_dropdowns()
-        colors = self._colors()
 
         max_val = self.add_caps_max if self.add_caps_max is not None else 9999
         values = list(range(0, max_val + 1))
@@ -3279,9 +2762,9 @@ class AnimeTrackerApp(ctk.CTk):
             self.add_caps_dropdown,
             width=95,
             height=dropdown_height,
-            fg_color=colors["surface"],
-            scrollbar_button_color=colors["line_strong"],
-            scrollbar_button_hover_color=colors["muted"]
+            fg_color="#1e293b",
+            scrollbar_button_color="#475569",
+            scrollbar_button_hover_color="#64748b"
         )
         scroll_frame.pack()
 
@@ -3292,8 +2775,8 @@ class AnimeTrackerApp(ctk.CTk):
                 width=76,
                 height=28,
                 fg_color="transparent",
-                hover_color=colors["surface_alt"],
-                text_color=colors["text"],
+                hover_color="#334155",
+                text_color="#f1f5f9",
                 font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
                 command=lambda v=val: self._select_add_caps_value(v)
             )
@@ -3321,9 +2804,8 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         self._close_all_dropdowns()
-        colors = self._colors()
 
-        estados = self._user_status_options()
+        estados = ["En proceso", "Completo", "Planeado", "En espera", "Abandonado"]
 
         try:
             entry_x = self.add_estado_entry.winfo_rootx()
@@ -3340,13 +2822,13 @@ class AnimeTrackerApp(ctk.CTk):
             self.add_estado_dropdown,
             width=180,
             height=len(estados) * 28,
-            bg=colors["surface"],
+            bg="#1e293b",
             highlightthickness=1,
-            highlightbackground=colors["line_strong"]
+            highlightbackground="#475569"
         )
         canvas.pack(fill="both", expand=False)
 
-        frame = tk.Frame(canvas, bg=colors["surface"])
+        frame = tk.Frame(canvas, bg="#1e293b")
         frame_id = canvas.create_window((0, 0), window=frame, anchor="nw")
 
         for estado in estados:
@@ -3356,8 +2838,8 @@ class AnimeTrackerApp(ctk.CTk):
                 width=170,
                 height=28,
                 fg_color="transparent",
-                hover_color=colors["surface_alt"],
-                text_color=colors["text"],
+                hover_color="#334155",
+                text_color="#f1f5f9",
                 font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
                 command=lambda v=estado: self._select_add_estado_value(v)
             )
@@ -3389,7 +2871,6 @@ class AnimeTrackerApp(ctk.CTk):
             return
 
         self._close_all_dropdowns()
-        colors = self._colors()
 
         scores = [str(n) for n in range(1, 11)]
 
@@ -3408,13 +2889,13 @@ class AnimeTrackerApp(ctk.CTk):
             self.add_score_dropdown,
             width=80,
             height=len(scores) * 28,
-            bg=colors["surface"],
+            bg="#1e293b",
             highlightthickness=1,
-            highlightbackground=colors["line_strong"]
+            highlightbackground="#475569"
         )
         canvas.pack(fill="both", expand=False)
 
-        frame = tk.Frame(canvas, bg=colors["surface"])
+        frame = tk.Frame(canvas, bg="#1e293b")
         frame_id = canvas.create_window((0, 0), window=frame, anchor="nw")
 
         for score in scores:
@@ -3424,8 +2905,8 @@ class AnimeTrackerApp(ctk.CTk):
                 width=70,
                 height=28,
                 fg_color="transparent",
-                hover_color=colors["surface_alt"],
-                text_color=colors["text"],
+                hover_color="#334155",
+                text_color="#f1f5f9",
                 font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
                 command=lambda v=score: self._select_add_score_value(v)
             )
@@ -3456,7 +2937,7 @@ class AnimeTrackerApp(ctk.CTk):
             caps_vistos = int(self.add_caps_entry.get())
             score = int(self.add_score_entry.get())
         except ValueError:
-            self.add_editor_message.configure(text=self._t("score_input_error"))
+            self.add_editor_message.configure(text="Capitulos y score tienen que ser numeros.")
             return
 
         nombre = anime.get("title", {}).get("romaji", "Sin nombre")
@@ -3480,7 +2961,7 @@ class AnimeTrackerApp(ctk.CTk):
             self.add_editor_message.configure(text="Los capitulos vistos no pueden superar el total.")
             return
 
-        estado = self._user_status_value(self.add_estado_entry.get())
+        estado = self.add_estado_entry.get()
         if estado == "Completo" and caps_totales is not None:
             caps_vistos = caps_totales
 
@@ -3577,10 +3058,9 @@ class AnimeTrackerApp(ctk.CTk):
 
     def _clear_add_highlight(self):
         self._highlighted_anime_id = None
-        colors = self._colors()
         for slot in getattr(self, "anime_card_slots", []):
                 try:
-                    slot["card"].configure(fg_color=colors["surface"], border_color=colors["line_strong"])
+                    slot["card"].configure(fg_color="#1e293b", border_color="#475569")
                 except (ValueError, tk.TclError):
                     pass
     def _update_anime_card_slot(self, slot, anime):
@@ -3591,12 +3071,12 @@ class AnimeTrackerApp(ctk.CTk):
         image_label = slot["image_label"]
         image_url = anime.get("coverImage", {}).get("medium")
         image_label.expected_image_url = image_url
-        self._clear_card_image(image_label, self._t("loading"))
+        self._clear_card_image(image_label, "Cargando...")
 
         if image_url:
             self._load_card_image(image_url, image_label)
         else:
-            self._clear_card_image(image_label, self._t("no_image"))
+            self._clear_card_image(image_label, "Sin imagen")
 
     def _shorten_anime_name(self, name):
         max_length = 46
@@ -3650,7 +3130,7 @@ class AnimeTrackerApp(ctk.CTk):
         if getattr(image_label, "expected_image_url", None) != image_url:
             return
 
-        self._clear_card_image(image_label, self._t("no_image"))
+        self._clear_card_image(image_label, "Sin imagen")
 
     def _clear_card_image(self, image_label, text=""):
         if not image_label.winfo_exists():
@@ -3666,15 +3146,14 @@ class AnimeTrackerApp(ctk.CTk):
         image_label.configure(text=text)
 
     def _create_action_card(self, parent, title, detail, color, hover, command=None, column=None, x=None, y=None):
-        colors = self._colors()
         card = ctk.CTkFrame(
             parent,
             width=290,
             height=164,
-            fg_color=colors["surface"],
+            fg_color="#1e293b",
             corner_radius=8,
             border_width=2,
-            border_color=colors["line_strong"]
+            border_color="#475569"
         )
         if x is not None and y is not None:
             card.place(x=x, y=y)
@@ -3686,7 +3165,7 @@ class AnimeTrackerApp(ctk.CTk):
         title_label = ctk.CTkLabel(
             card,
             text=title,
-            text_color=colors["text"],
+            text_color="#f1f5f9",
             font=ctk.CTkFont(family=self.font_family, size=20, weight="bold")
         )
         title_label.grid(row=0, column=0, sticky="w", padx=22, pady=(22, 4))
@@ -3694,14 +3173,14 @@ class AnimeTrackerApp(ctk.CTk):
         detail_label = ctk.CTkLabel(
             card,
             text=detail,
-            text_color=colors["muted"],
+            text_color="#94a3b8",
             font=ctk.CTkFont(family=self.font_family, size=14, weight="bold")
         )
         detail_label.grid(row=1, column=0, sticky="w", padx=22, pady=(0, 22))
 
         button = ctk.CTkButton(
             card,
-            text=self._t("open"),
+            text="Abrir",
             width=128,
             height=38,
             fg_color=color,
