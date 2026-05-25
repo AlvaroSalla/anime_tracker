@@ -746,6 +746,7 @@ class AnimeTrackerApp(ctk.CTk):
             panel = getattr(self, "add_editor_panel", None)
             panel_width = 430
             compact_grid_width = 740
+            expanded_grid_width = 1138
             side_width = 448
             column_count = 6
         else:
@@ -754,6 +755,7 @@ class AnimeTrackerApp(ctk.CTk):
             panel = getattr(self, "saved_editor_panel", None)
             panel_width = 430
             compact_grid_width = 740
+            expanded_grid_width = 1138
             side_width = 448
             column_count = 3
 
@@ -764,46 +766,54 @@ class AnimeTrackerApp(ctk.CTk):
 
         self._cancel_editor_animation()
         token = self._editor_animation_token
-        frames = 12
-        delay = 12
+        frames = 16
+        delay = 10
 
-        start_panel = 1 if opening else panel_width
-        end_panel = panel_width if opening else 1
-
-        try:
-            grid.configure(width=compact_grid_width)
-            frame.grid_columnconfigure(1, minsize=side_width)
-        except (ValueError, tk.TclError):
-            if on_complete is not None:
-                on_complete()
-            return
-
-        if panel is not None and panel.winfo_exists():
-            try:
-                panel.configure(width=start_panel)
-            except (ValueError, tk.TclError, AttributeError):
-                pass
+        if opening:
+            start_grid = expanded_grid_width
+            end_grid = compact_grid_width
+            start_side = 0
+            end_side = side_width
+            start_panel = 1
+            end_panel = panel_width
+        else:
+            start_grid = compact_grid_width
+            end_grid = expanded_grid_width
+            start_side = side_width
+            end_side = 0
+            start_panel = panel_width
+            end_panel = 1
 
         def step(index=0):
             if token != self._editor_animation_token:
                 return
 
             progress = self._ease_out_cubic(index / frames)
-            current_panel_width = round(start_panel + (end_panel - start_panel) * progress)
 
             try:
-                if panel is not None and panel.winfo_exists():
-                    panel.configure(width=max(1, current_panel_width))
+                current_grid = round(start_grid + (end_grid - start_grid) * progress)
+                current_side = round(start_side + (end_side - start_side) * progress)
+                grid.configure(width=max(1, current_grid))
+                frame.grid_columnconfigure(1, minsize=max(0, current_side))
             except (ValueError, tk.TclError):
                 return
+
+            if panel is not None and panel.winfo_exists():
+                current_panel = round(start_panel + (end_panel - start_panel) * progress)
+                try:
+                    panel.configure(width=max(1, current_panel))
+                except (ValueError, tk.TclError):
+                    pass
+
+            self.update_idletasks()
 
             if index < frames:
                 self._editor_animation_job = self.after(delay, lambda: step(index + 1))
                 return
 
             self._editor_animation_job = None
-            frame.grid_columnconfigure(1, minsize=side_width)
-            grid.configure(width=compact_grid_width)
+            frame.grid_columnconfigure(1, minsize=end_side)
+            grid.configure(width=end_grid)
             if panel is not None and panel.winfo_exists():
                 panel.configure(width=end_panel)
 
@@ -814,6 +824,7 @@ class AnimeTrackerApp(ctk.CTk):
                     weight = 1 if column < self.saved_columns else 0
                 grid.grid_columnconfigure(column, weight=weight)
 
+            self.update_idletasks()
             if on_complete is not None:
                 on_complete()
 
@@ -1704,16 +1715,20 @@ class AnimeTrackerApp(ctk.CTk):
         card.anime_data = anime
         self._bind_saved_card_click(card, anime)
 
-    def _bind_saved_card_click(self, widget, anime):
+        card.bind("<Enter>", lambda e: card.configure(border_color="#60a5fa"))
+        card.bind("<Leave>", lambda e: card.configure(border_color=colors["line_strong"]))
+
+    def _bind_saved_card_click(self, widget, anime, is_card=True):
         widget.bind("<Button-1>", lambda event: self._open_saved_editor(anime))
 
-        try:
-            widget.configure(cursor="hand2")
-        except (ValueError, tk.TclError):
-            pass
+        if is_card:
+            try:
+                widget.configure(cursor="hand2")
+            except (ValueError, tk.TclError):
+                pass
 
         for child in widget.winfo_children():
-            self._bind_saved_card_click(child, anime)
+            self._bind_saved_card_click(child, anime, is_card=False)
 
     def _open_saved_editor(self, anime):
         is_switch = self.saved_editor_open or self.saved_editor_panel is not None
@@ -1731,13 +1746,14 @@ class AnimeTrackerApp(ctk.CTk):
                         old_panel.destroy()
                 except tk.TclError:
                     pass
+            self._animate_editor_transition("saved", True, on_complete=self._render_saved_page)
             self._apply_saved_highlight()
             return
 
         self._close_saved_editor(reset_grid=False)
-        self._set_saved_editor_layout(True, rerender=True, animated=True)
+        self._set_saved_editor_layout(True, rerender=False, animated=True)
         self._build_saved_panel(anime)
-        self._animate_editor_transition("saved", True)
+        self._animate_editor_transition("saved", True, on_complete=self._render_saved_page)
         self._apply_saved_highlight()
 
     def _build_saved_panel(self, anime):
@@ -2094,12 +2110,13 @@ class AnimeTrackerApp(ctk.CTk):
         self.saved_columns = 2 if editor_open else 3
         self.saved_page_size = 8 if editor_open else 9
 
-        if animated:
-            self.saved_grid.configure(width=740)
-            self.saved_frame.grid_columnconfigure(1, minsize=448)
-        else:
-            self.saved_grid.configure(width=740 if editor_open else 1138)
-            self.saved_frame.grid_columnconfigure(1, minsize=448 if editor_open else 0)
+        if not animated:
+            if editor_open:
+                self.saved_grid.configure(width=740)
+                self.saved_frame.grid_columnconfigure(1, minsize=448)
+            else:
+                self.saved_grid.configure(width=1138)
+                self.saved_frame.grid_columnconfigure(1, minsize=0)
 
         for column in range(3):
             weight = 1 if column < self.saved_columns else 0
@@ -2864,13 +2881,14 @@ class AnimeTrackerApp(ctk.CTk):
                         old_panel.destroy()
                 except tk.TclError:
                     pass
+            self._animate_editor_transition("add", True, on_complete=self._render_anime_page)
             self._apply_add_highlight()
             return
 
         self._close_add_panel(reset_grid=False)
-        self._set_add_editor_layout(True, rerender=True, animated=True)
+        self._set_add_editor_layout(True, rerender=False, animated=True)
         self._build_add_panel(anime)
-        self._animate_editor_transition("add", True)
+        self._animate_editor_transition("add", True, on_complete=self._render_anime_page)
         self._apply_add_highlight()
 
     def _build_add_panel(self, anime):
@@ -3205,12 +3223,13 @@ class AnimeTrackerApp(ctk.CTk):
         self.anime_columns = 4 if editor_open else 6
         self.anime_page_size = 32 if editor_open else 50
 
-        if animated:
-            self.anime_scroll.configure(width=740)
-            self.add_frame.grid_columnconfigure(1, minsize=448)
-        else:
-            self.anime_scroll.configure(width=740 if editor_open else 1138)
-            self.add_frame.grid_columnconfigure(1, minsize=448 if editor_open else 0)
+        if not animated:
+            if editor_open:
+                self.anime_scroll.configure(width=740)
+                self.add_frame.grid_columnconfigure(1, minsize=448)
+            else:
+                self.anime_scroll.configure(width=1138)
+                self.add_frame.grid_columnconfigure(1, minsize=0)
 
         for column in range(6):
             weight = 1 if column < self.anime_columns else 0
