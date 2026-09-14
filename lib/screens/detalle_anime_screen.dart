@@ -147,6 +147,12 @@ class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
         );
         final entrada =
             await _repository.obtenerPorAnimeId(anime.id);
+        final todas = await _repository.obtenerTodas();
+        debugPrint(
+          '[Detalle] tras agregar animeId=${anime.id}: '
+          'obtenerTodas() → ${todas.length} entradas: '
+          '${todas.map((e) => e.animeId).toList()}',
+        );
         if (!mounted) return;
         setState(() => _entrada = entrada);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -316,24 +322,40 @@ class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
       return const Center(child: Text('No se pudo cargar el anime.'));
     }
 
-    final total = anime.episodios;
+    // Total conocido o inferido (en emisión: nextAiring - 1, como
+    // mínimo lo ya visto). 0 = sin episodios confirmados todavía.
+    final actual = _entrada?.episodioActual ?? 0;
+    final visibles = anime.episodiosVisibles(actual);
+    final totalConocido = anime.episodios != null && anime.episodios! > 0;
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(child: _buildHeader(anime)),
         SliverToBoxAdapter(child: _buildAcciones(anime)),
         SliverToBoxAdapter(child: _buildTituloEpisodios(anime)),
-        if (total == null || total <= 0)
+        if (visibles <= 0)
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
-              child: Text('Cantidad de episodios desconocida por ahora.'),
+              child: Text(
+                'En emisión, todavía no hay episodios confirmados.',
+              ),
             ),
           )
-        else
+        else ...[
+          if (!totalConocido)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: Text(
+                  'En emisión: se listan los episodios ya emitidos.',
+                ),
+              ),
+            ),
           SliverList.builder(
-            itemCount: total,
+            itemCount: visibles,
             itemBuilder: (context, i) => _buildFilaEpisodio(i + 1),
           ),
+        ],
       ],
     );
   }
@@ -414,7 +436,7 @@ class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
                         Text(
                           anime.episodios != null
                               ? '${anime.episodios} eps'
-                              : '? eps',
+                              : 'En emisión',
                           style: textTheme.bodyMedium,
                         ),
                       ],
@@ -490,9 +512,13 @@ class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
   Widget _buildTituloEpisodios(Anime anime) {
     final actual = _entrada?.episodioActual ?? 0;
     final total = anime.episodios;
-    final subtitulo = total == null || total <= 0
-        ? null
-        : '$actual/$total vistos';
+    final String? subtitulo;
+    if (total != null && total > 0) {
+      subtitulo = '$actual/$total vistos';
+    } else {
+      final visibles = anime.episodiosVisibles(actual);
+      subtitulo = visibles > 0 ? '$actual/$visibles vistos' : null;
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(

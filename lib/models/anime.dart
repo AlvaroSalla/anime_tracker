@@ -32,8 +32,14 @@ class Anime {
   final int? averageScore;
 
   /// Cantidad de episodios (`episodes`). `null` si aún se desconoce
-  /// (anime en emisión o no estrenado).
+  /// (anime en emisión o no estrenado). Siempre nullable: nunca asumir
+  /// que viene un número.
   final int? episodios;
+
+  /// Próximo episodio a emitirse (`nextAiringEpisode.episode`).
+  /// Solo tiene valor en animes en emisión; permite inferir cuántos
+  /// episodios ya salieron cuando [episodios] (total final) es `null`.
+  final int? proximoEpisodio;
 
   /// Estado (`status`): p. ej. `FINISHED`, `RELEASING`, `NOT_YET_RELEASED`,
   /// `CANCELLED`, `HIATUS`.
@@ -55,6 +61,7 @@ class Anime {
     this.generos = const [],
     this.averageScore,
     this.episodios,
+    this.proximoEpisodio,
     this.status,
     this.season,
     this.seasonYear,
@@ -72,6 +79,20 @@ class Anime {
     return 'Anime #$id';
   }
 
+  /// Cantidad de episodios que se pueden listar hoy.
+  ///
+  /// - Si se conoce el total ([episodios]), se usa ese.
+  /// - Si el total es `null` (en emisión), se infiere desde
+  ///   [proximoEpisodio]: ya salieron `proximoEpisodio - 1`.
+  /// - Nunca baja de [episodioActual] (lo ya visto siempre se lista).
+  /// - Devuelve 0 cuando no hay ningún episodio confirmado todavía.
+  int episodiosVisibles(int episodioActual) {
+    if (episodios != null && episodios! > 0) return episodios!;
+    final emitidos = (proximoEpisodio ?? 1) - 1;
+    if (emitidos <= 0) return episodioActual > 0 ? episodioActual : 0;
+    return emitidos > episodioActual ? emitidos : episodioActual;
+  }
+
   /// Parsea un objeto `Media` de AniList tal cual viene en el JSON.
   ///
   /// Ejemplo de fragmento esperado:
@@ -85,6 +106,7 @@ class Anime {
   ///   "genres": ["Action", "Adventure"],
   ///   "averageScore": 87,
   ///   "episodes": 1100,
+  ///   "nextAiringEpisode": {"episode": 1101},
   ///   "status": "RELEASING",
   ///   "season": "FALL",
   ///   "seasonYear": 1999
@@ -94,6 +116,7 @@ class Anime {
     final title = json['title'] as Map<String, dynamic>?;
     final coverImage = json['coverImage'] as Map<String, dynamic>?;
     final genresJson = json['genres'] as List<dynamic>?;
+    final nextAiring = json['nextAiringEpisode'] as Map<String, dynamic>?;
 
     return Anime(
       id: (json['id'] as num).toInt(),
@@ -107,6 +130,7 @@ class Anime {
           : genresJson.whereType<String>().toList(),
       averageScore: (json['averageScore'] as num?)?.toInt(),
       episodios: (json['episodes'] as num?)?.toInt(),
+      proximoEpisodio: (nextAiring?['episode'] as num?)?.toInt(),
       status: json['status'] as String?,
       season: json['season'] as String?,
       seasonYear: (json['seasonYear'] as num?)?.toInt(),

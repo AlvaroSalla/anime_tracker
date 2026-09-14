@@ -53,6 +53,17 @@ class AnimeCard extends StatelessWidget {
                         : '—',
                     style: textTheme.bodySmall,
                   ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      anime.episodios != null
+                          ? '${anime.episodios} eps'
+                          : 'En emisión',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodySmall,
+                    ),
+                  ),
                 ],
               ),
             ],

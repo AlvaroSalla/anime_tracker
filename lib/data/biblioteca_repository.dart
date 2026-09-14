@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/entrada_biblioteca.dart';
@@ -16,13 +17,27 @@ class BibliotecaRepository {
 
   /// Agrega una entrada. Si el [animeId] ya existe, lo reemplaza
   /// (re-agregar equivale a actualizar).
+  ///
+  /// Loguea el resultado para diagnosticar si el INSERT llega a la base:
+  /// si falla, el error se muestra en consola y se relanza.
   Future<void> agregar(EntradaBiblioteca entrada) async {
-    final db = await _dbHelper.database;
-    await db.insert(
-      DatabaseHelper.tablaBiblioteca,
-      entrada.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    try {
+      final db = await _dbHelper.database;
+      await db.insert(
+        DatabaseHelper.tablaBiblioteca,
+        entrada.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      debugPrint(
+        '[Biblioteca] agregar OK: animeId=${entrada.animeId} '
+        'titulo="${entrada.tituloAnime}"',
+      );
+    } catch (e) {
+      debugPrint(
+        '[Biblioteca] agregar FALLÓ: animeId=${entrada.animeId} error=$e',
+      );
+      rethrow;
+    }
   }
 
   /// Actualiza una entrada existente y refresca [fechaActualizado]

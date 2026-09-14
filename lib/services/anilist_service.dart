@@ -46,6 +46,7 @@ query ($search: String) {
       genres
       averageScore
       episodes
+      nextAiringEpisode { episode }
       status
       season
       seasonYear
@@ -66,6 +67,7 @@ query ($id: Int) {
     genres
     averageScore
     episodes
+    nextAiringEpisode { episode }
     status
     season
     seasonYear
@@ -86,6 +88,7 @@ query ($page: Int, $perPage: Int) {
       genres
       averageScore
       episodes
+      nextAiringEpisode { episode }
       status
       season
       seasonYear

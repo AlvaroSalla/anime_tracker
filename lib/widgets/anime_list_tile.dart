@@ -20,6 +20,7 @@ class AnimeListTile extends StatelessWidget {
     final subtitulo = [
       if (anime.generos.isNotEmpty) anime.generos.take(3).join(' • '),
       if (anime.seasonYear != null) '${anime.seasonYear}',
+      if (anime.episodios != null) '${anime.episodios} eps' else 'En emisión',
     ].join('  ·  ');
 
     return ListTile(

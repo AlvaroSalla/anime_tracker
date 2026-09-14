@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../data/biblioteca_repository.dart';
 import '../services/anilist_service.dart';
+import 'biblioteca_screen.dart';
 import 'inicio_screen.dart';
 
 /// Estructura general de la app: [NavigationRail] fijo a la izquierda
@@ -11,7 +13,12 @@ class AppShell extends StatefulWidget {
   /// crea uno propio (y lo cierra al destruirse). Inyectable en tests.
   final AnilistService? service;
 
-  const AppShell({super.key, this.service});
+  /// Repositorio para la pantalla de biblioteca. Inyectable en tests
+  /// (en widget tests se usa un fake en memoria porque el sqlite real
+  /// no avanza en zona fake-async).
+  final BibliotecaRepository? repository;
+
+  const AppShell({super.key, this.service, this.repository});
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -21,6 +28,11 @@ class _AppShellState extends State<AppShell> {
   late final AnilistService _service;
   late final bool _poseeServicio;
   late final List<Widget> _secciones;
+
+  /// Clave para pedirle a la biblioteca que se recargue cada vez que
+  /// se selecciona su sección (el IndexedStack la mantiene viva y si
+  /// no, mostraría datos viejos tras agregar/quitar desde el detalle).
+  final _bibliotecaKey = GlobalKey<BibliotecaScreenState>();
 
   int _seccion = 0;
 
@@ -39,9 +51,10 @@ class _AppShellState extends State<AppShell> {
     // Índices 0-4 = destinos del rail, 5 = Configuración (trailing).
     _secciones = [
       InicioScreen(service: _service),
-      const SeccionPlaceholder(
-        titulo: 'Mi biblioteca',
-        icono: Icons.video_library_outlined,
+      BibliotecaScreen(
+        key: _bibliotecaKey,
+        repository: widget.repository,
+        service: _service,
       ),
       const SeccionPlaceholder(
         titulo: 'Viendo',
@@ -116,10 +129,17 @@ class _AppShellState extends State<AppShell> {
                 extended: expandido,
                 minExtendedWidth: 210,
                 selectedIndex: _indiceRail,
-                onDestinationSelected: (indice) => setState(() {
-                  _seccion = indice;
-                  _indiceRail = indice;
-                }),
+                onDestinationSelected: (indice) {
+                  setState(() {
+                    _seccion = indice;
+                    _indiceRail = indice;
+                  });
+                  // La biblioteca se relee al entrar: cubre altas/bajas
+                  // hechas desde el detalle sin recrear el widget.
+                  if (indice == 1) {
+                    _bibliotecaKey.currentState?.recargar();
+                  }
+                },
                 labelType: expandido
                     ? NavigationRailLabelType.none
                     : NavigationRailLabelType.all,
