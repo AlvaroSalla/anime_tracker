@@ -1,0 +1,12 @@
+# Config del runner de tests (la respeta `flutter test`).
+#
+# El tag "integration" marca tests que requieren el scraper-service
+# corriendo en http://localhost:3000 (ver
+# test/matching_service_integration_test.dart). Van con `skip` por
+# default para que el `flutter test` general quede en verde sin el
+# servicio; solo corren a pedido con:
+#   flutter test --tags integration --run-skipped
+tags:
+  integration:
+    skip: "Requiere scraper-service en http://localhost:3000 (`npm start` en scraper-service/)"
+    timeout: 2x
