@@ -186,7 +186,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // Ahora abre el modal en vez de guardar directo.
     await tester.tap(find.text('Agregar a mi biblioteca'));
+    await tester.pumpAndSettle();
+    expect(find.text('Agregar a mi biblioteca'), findsWidgets);
+
+    await tester.tap(find.text('Pendiente'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Guardar'));
     await tester.pumpAndSettle();
 
     expect(find.text('En mi biblioteca'), findsOneWidget);
@@ -194,5 +201,88 @@ void main() {
     final entrada = await repo.obtenerPorAnimeId(enEmision.id);
     expect(entrada, isNotNull);
     expect(entrada!.episodiosTotales, isNull);
+    expect(entrada.estado, EstadoBiblioteca.pendiente);
+    expect(entrada.episodioActual, 0);
+  });
+
+  testWidgets('editar desde el detalle actualiza en vez de agregar',
+      (tester) async {
+    final repo = FakeBibliotecaRepository([
+      EntradaBiblioteca(
+        animeId: finalizado.id,
+        tituloAnime: finalizado.tituloDisplay,
+        estado: EstadoBiblioteca.pendiente,
+        episodioActual: 0,
+        episodiosTotales: finalizado.episodios,
+      ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: DetalleAnimeScreen(
+          animeId: finalizado.id,
+          animeInicial: finalizado,
+          service: servicio(),
+          repository: repo,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // El botón muestra el estado guardado y abre el modal pre-cargado.
+    expect(find.text('En mi biblioteca'), findsOneWidget);
+    await tester.tap(find.text('En mi biblioteca'));
+    await tester.pumpAndSettle();
+    expect(find.text('Editar en mi biblioteca'), findsOneWidget);
+
+    await tester.tap(find.text('Viendo'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '4');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Guardar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('En mi biblioteca'), findsOneWidget);
+    final entrada = await repo.obtenerPorAnimeId(finalizado.id);
+    expect(entrada, isNotNull);
+    expect(entrada!.estado, EstadoBiblioteca.viendo);
+    expect(entrada.episodioActual, 4);
+    // Sigue siendo una sola fila (actualizar, no duplicar).
+    expect((await repo.obtenerTodas()).length, 1);
+  });
+
+  testWidgets('quitar desde el modal elimina de la biblioteca',
+      (tester) async {
+    final repo = FakeBibliotecaRepository([
+      EntradaBiblioteca(
+        animeId: finalizado.id,
+        tituloAnime: finalizado.tituloDisplay,
+        estado: EstadoBiblioteca.viendo,
+        episodioActual: 2,
+        episodiosTotales: finalizado.episodios,
+      ),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: DetalleAnimeScreen(
+          animeId: finalizado.id,
+          animeInicial: finalizado,
+          service: servicio(),
+          repository: repo,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('En mi biblioteca'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Quitar'));
+    await tester.pumpAndSettle();
+
+    // Confirmación dentro del modal.
+    await tester.tap(find.widgetWithText(FilledButton, 'Quitar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Agregar a mi biblioteca'), findsOneWidget);
+    expect(await repo.obtenerPorAnimeId(finalizado.id), isNull);
   });
 }

@@ -5,6 +5,7 @@ import '../models/anime.dart';
 import '../models/entrada_biblioteca.dart';
 import '../services/anilist_service.dart';
 import '../widgets/anime_image.dart';
+import '../widgets/modal_agregar_biblioteca.dart';
 
 /// Pantalla de detalle de un anime.
 ///
@@ -128,64 +129,70 @@ class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
     }
   }
 
-  /// Agrega a la biblioteca, o si ya está, confirma antes de quitar.
-  Future<void> _alternarBiblioteca() async {
+  /// Abre el modal de biblioteca: agregar si no está, editar si ya está.
+  ///
+  /// Al confirmar con Guardar se persiste con [agregar] o [actualizar]
+  /// según corresponda; Quitar elimina (ya confirmado en el modal).
+  Future<void> _abrirModalBiblioteca() async {
     final anime = _anime;
     if (anime == null || _guardando) return;
 
-    // Todavía no está: agregar directo.
-    if (_entrada == null) {
-      setState(() => _guardando = true);
-      try {
-        await _repository.agregar(
-          EntradaBiblioteca(
-            animeId: anime.id,
-            tituloAnime: anime.tituloDisplay,
-            imagenPortada: anime.coverImageUrl,
-            episodiosTotales: anime.episodios,
-          ),
-        );
-        final entrada =
-            await _repository.obtenerPorAnimeId(anime.id);
-        final todas = await _repository.obtenerTodas();
-        debugPrint(
-          '[Detalle] tras agregar animeId=${anime.id}: '
-          'obtenerTodas() → ${todas.length} entradas: '
-          '${todas.map((e) => e.animeId).toList()}',
-        );
-        if (!mounted) return;
-        setState(() => _entrada = entrada);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Agregado a tu biblioteca')),
-        );
-      } finally {
-        if (mounted) setState(() => _guardando = false);
-      }
-      return;
-    }
-
-    // Ya está: preguntar si quiere sacarlo.
-    final confirmar = await showDialog<bool>(
+    final esEdicion = _entrada != null;
+    final resultado = await mostrarModalAgregarBiblioteca(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Quitar de la biblioteca'),
-        content: Text(
-          '¿Querés sacar "${_entrada!.tituloAnime}" de tu biblioteca?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Quitar'),
-          ),
-        ],
-      ),
+      anime: anime,
+      entradaExistente: _entrada,
     );
-    if (confirmar != true || !mounted) return;
+    if (resultado == null || !mounted) return;
 
+    switch (resultado) {
+      case GuardarBiblioteca(:final entrada):
+        await _guardarEntrada(entrada, esEdicion: esEdicion);
+      case QuitarBiblioteca():
+        await _quitarDeBiblioteca();
+    }
+  }
+
+  /// Persiste [entrada] (agregar o actualizar) y refresca la pantalla
+  /// para que el botón pase a "En mi biblioteca".
+  Future<void> _guardarEntrada(
+    EntradaBiblioteca entrada, {
+    required bool esEdicion,
+  }) async {
+    setState(() => _guardando = true);
+    try {
+      if (esEdicion) {
+        await _repository.actualizar(entrada);
+      } else {
+        await _repository.agregar(entrada);
+      }
+      final actualizada =
+          await _repository.obtenerPorAnimeId(entrada.animeId);
+      final todas = await _repository.obtenerTodas();
+      debugPrint(
+        '[Detalle] tras guardar animeId=${entrada.animeId}: '
+        'obtenerTodas() → ${todas.length} entradas: '
+        '${todas.map((e) => e.animeId).toList()}',
+      );
+      if (!mounted) return;
+      setState(() => _entrada = actualizada);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            esEdicion
+                ? 'Cambios guardados en tu biblioteca'
+                : 'Agregado a tu biblioteca',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
+  }
+
+  /// Quita el anime de la biblioteca (la confirmación ya se pidió en
+  /// el modal antes de devolver [QuitarBiblioteca]).
+  Future<void> _quitarDeBiblioteca() async {
     setState(() => _guardando = true);
     try {
       await _repository.eliminar(widget.animeId);
@@ -481,13 +488,13 @@ class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
                 : enBiblioteca
                     ? OutlinedButton.icon(
                         onPressed:
-                            _guardando ? null : _alternarBiblioteca,
+                            _guardando ? null : _abrirModalBiblioteca,
                         icon: const Icon(Icons.check),
                         label: const Text('En mi biblioteca'),
                       )
                     : FilledButton.icon(
                         onPressed:
-                            _guardando ? null : _alternarBiblioteca,
+                            _guardando ? null : _abrirModalBiblioteca,
                         icon: const Icon(Icons.add),
                         label: const Text('Agregar a mi biblioteca'),
                       ),
