@@ -4,8 +4,10 @@ import '../data/biblioteca_repository.dart';
 import '../models/anime.dart';
 import '../models/entrada_biblioteca.dart';
 import '../services/anilist_service.dart';
+import '../services/scraper_service.dart';
 import '../widgets/anime_image.dart';
 import '../widgets/modal_agregar_biblioteca.dart';
+import 'reproductor_screen.dart';
 
 /// Pantalla de detalle de un anime.
 ///
@@ -20,8 +22,8 @@ import '../widgets/modal_agregar_biblioteca.dart';
 /// - Botón "Agregar a mi biblioteca" / "En mi biblioteca" (con confirmación
 ///   para quitar) + botón de favorito al lado.
 /// - Lista de episodios (1..total) con estado visual según el progreso
-///   guardado en la biblioteca. El play solo actualiza `episodioActual`
-///   (todavía no hay reproductor).
+///   guardado en la biblioteca. El play abre el [ReproductorScreen];
+///   al salir, el reproductor actualiza `episodioActual` si se avanzó.
 class DetalleAnimeScreen extends StatefulWidget {
   /// ID de AniList del anime a mostrar.
   final int animeId;
@@ -33,12 +35,17 @@ class DetalleAnimeScreen extends StatefulWidget {
   final AnilistService? service;
   final BibliotecaRepository? repository;
 
+  /// Cliente del scraper-service para el reproductor (inyectable en
+  /// tests; si no se pasa, el reproductor crea el propio).
+  final ScraperService? scraper;
+
   const DetalleAnimeScreen({
     super.key,
     required this.animeId,
     this.animeInicial,
     this.service,
     this.repository,
+    this.scraper,
   });
 
   @override
@@ -206,40 +213,25 @@ class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
     }
   }
 
-  /// Marca el progreso hasta el episodio [numero].
+  /// Abre el reproductor para el episodio [numero].
   ///
-  /// Si el anime no está en la biblioteca, primero lo agrega con ese
-  /// progreso. Todavía no hay reproductor: solo persiste `episodioActual`.
-  Future<void> _marcarEpisodio(int numero) async {
+  /// Al volver se relee la biblioteca: el reproductor ya actualizó
+  /// `episodioActual` si se avanzó (y solo si el anime está guardado).
+  Future<void> _abrirReproductor(int numero) async {
     final anime = _anime;
-    if (anime == null || _guardando) return;
-    setState(() => _guardando = true);
-    try {
-      if (_entrada == null) {
-        await _repository.agregar(
-          EntradaBiblioteca(
-            animeId: anime.id,
-            tituloAnime: anime.tituloDisplay,
-            imagenPortada: anime.coverImageUrl,
-            episodiosTotales: anime.episodios,
-            episodioActual: numero,
-          ),
-        );
-      } else {
-        await _repository.actualizar(
-          _entrada!.copyWith(episodioActual: numero),
-        );
-      }
-      final entrada =
-          await _repository.obtenerPorAnimeId(widget.animeId);
-      if (!mounted) return;
-      setState(() => _entrada = entrada);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Marcado hasta el episodio $numero')),
-      );
-    } finally {
-      if (mounted) setState(() => _guardando = false);
-    }
+    if (anime == null) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ReproductorScreen(
+          anime: anime,
+          episodio: numero,
+          repository: _repository,
+          scraper: widget.scraper,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _cargarBiblioteca();
   }
 
   // -----------------------------------------------------------------
@@ -581,9 +573,9 @@ class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
                 )
               : null,
       trailing: IconButton(
-        tooltip: 'Marcar hasta acá',
+        tooltip: 'Ver episodio',
         icon: const Icon(Icons.play_arrow),
-        onPressed: _guardando ? null : () => _marcarEpisodio(numero),
+        onPressed: () => _abrirReproductor(numero),
       ),
     );
   }
