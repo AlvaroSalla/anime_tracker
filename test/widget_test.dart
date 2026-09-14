@@ -1,30 +1,70 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:anime_tracker/models/anime.dart';
+import 'package:anime_tracker/screens/app_shell.dart';
+import 'package:anime_tracker/services/anilist_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:anime_tracker/main.dart';
+/// Fake sin red: devuelve datos fijos. Las portadas son `null` a
+/// propósito para que el test no intente cargar imágenes de red.
+class _FakeAnilistService extends AnilistService {
+  @override
+  Future<List<Anime>> obtenerTrending({int pagina = 1}) async {
+    return const [
+      Anime(
+        id: 21,
+        tituloRomaji: 'One Piece',
+        averageScore: 87,
+        generos: ['Action', 'Adventure'],
+        seasonYear: 1999,
+      ),
+      Anime(
+        id: 20,
+        tituloRomaji: 'Naruto',
+        averageScore: 79,
+        generos: ['Action'],
+        seasonYear: 2002,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<Anime>> buscarAnime(String query) async => [];
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('AppShell muestra rail + inicio con trending',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(home: AppShell(service: _FakeAnilistService())),
+    );
+    // Deja que el Future de trending complete y reconstruya.
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Items del rail.
+    expect(find.text('Inicio'), findsOneWidget);
+    expect(find.text('Mi biblioteca'), findsOneWidget);
+    expect(find.text('Configuración'), findsOneWidget);
+
+    // Secciones de inicio con datos del fake.
+    expect(find.text('Recomendado para vos'), findsOneWidget);
+    expect(find.text('Más vistos según AniList'), findsOneWidget);
+    expect(find.text('One Piece'), findsNWidgets(2)); // card + tile
+    expect(find.text('Naruto'), findsNWidgets(2));
+
+    // Sin spinner una vez cargado.
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('Navegar a una sección placeholder muestra "Próximamente"',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(home: AppShell(service: _FakeAnilistService())),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('Favoritos'));
+    await tester.pump();
+
+    expect(find.text('Próximamente'), findsOneWidget);
   });
 }

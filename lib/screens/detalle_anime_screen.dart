@@ -1,0 +1,557 @@
+import 'package:flutter/material.dart';
+
+import '../data/biblioteca_repository.dart';
+import '../models/anime.dart';
+import '../models/entrada_biblioteca.dart';
+import '../services/anilist_service.dart';
+import '../widgets/anime_image.dart';
+
+/// Pantalla de detalle de un anime.
+///
+/// Recibe el [animeId] (siempre) y opcionalmente el [animeInicial] cuando
+/// ya lo tenemos de una lista (trending / búsqueda). En ese caso se muestra
+/// directo sin otra petición a la API; si no hay inicial, se trae con
+/// [AnilistService.obtenerDetalle].
+///
+/// Incluye:
+/// - Header con portada, título, chips de género, sinopsis y fila de
+///   score / episodios / estado.
+/// - Botón "Agregar a mi biblioteca" / "En mi biblioteca" (con confirmación
+///   para quitar) + botón de favorito al lado.
+/// - Lista de episodios (1..total) con estado visual según el progreso
+///   guardado en la biblioteca. El play solo actualiza `episodioActual`
+///   (todavía no hay reproductor).
+class DetalleAnimeScreen extends StatefulWidget {
+  /// ID de AniList del anime a mostrar.
+  final int animeId;
+
+  /// Objeto ya conocido (de una lista). Evita una petición extra.
+  final Anime? animeInicial;
+
+  /// Inyectables para tests. Si no se pasan, el screen crea los propios.
+  final AnilistService? service;
+  final BibliotecaRepository? repository;
+
+  const DetalleAnimeScreen({
+    super.key,
+    required this.animeId,
+    this.animeInicial,
+    this.service,
+    this.repository,
+  });
+
+  @override
+  State<DetalleAnimeScreen> createState() => _DetalleAnimeScreenState();
+}
+
+class _DetalleAnimeScreenState extends State<DetalleAnimeScreen> {
+  late final AnilistService _service;
+  late final bool _poseeServicio;
+  late final BibliotecaRepository _repository;
+
+  Anime? _anime;
+  bool _cargandoDetalle = false;
+  String? _errorDetalle;
+
+  EntradaBiblioteca? _entrada;
+  bool _cargandoBiblioteca = true;
+  bool _guardando = false;
+
+  /// Estado visual del corazón. Todavía no se persiste en SQLite
+  /// (no hay columna/tabla de favoritos): se resuelve en el módulo
+  /// de Favoritos / Mi biblioteca real.
+  bool _esFavorito = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _poseeServicio = widget.service == null;
+    _service = widget.service ?? AnilistService();
+    _repository = widget.repository ?? BibliotecaRepository();
+
+    if (widget.animeInicial != null) {
+      _anime = widget.animeInicial;
+      _cargandoDetalle = false;
+    } else {
+      _cargandoDetalle = true;
+      _cargarDetalle();
+    }
+    _cargarBiblioteca();
+  }
+
+  @override
+  void dispose() {
+    if (_poseeServicio) _service.dispose();
+    super.dispose();
+  }
+
+  Future<void> _cargarDetalle() async {
+    setState(() {
+      _cargandoDetalle = true;
+      _errorDetalle = null;
+    });
+    try {
+      final detalle = await _service.obtenerDetalle(widget.animeId);
+      if (!mounted) return;
+      setState(() {
+        _anime = detalle;
+        _cargandoDetalle = false;
+      });
+    } on AnilistException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorDetalle = e.message;
+        _cargandoDetalle = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorDetalle = 'Error inesperado: $e';
+        _cargandoDetalle = false;
+      });
+    }
+  }
+
+  Future<void> _cargarBiblioteca() async {
+    setState(() => _cargandoBiblioteca = true);
+    try {
+      final entrada =
+          await _repository.obtenerPorAnimeId(widget.animeId);
+      if (!mounted) return;
+      setState(() {
+        _entrada = entrada;
+        _cargandoBiblioteca = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _cargandoBiblioteca = false);
+    }
+  }
+
+  /// Agrega a la biblioteca, o si ya está, confirma antes de quitar.
+  Future<void> _alternarBiblioteca() async {
+    final anime = _anime;
+    if (anime == null || _guardando) return;
+
+    // Todavía no está: agregar directo.
+    if (_entrada == null) {
+      setState(() => _guardando = true);
+      try {
+        await _repository.agregar(
+          EntradaBiblioteca(
+            animeId: anime.id,
+            tituloAnime: anime.tituloDisplay,
+            imagenPortada: anime.coverImageUrl,
+            episodiosTotales: anime.episodios,
+          ),
+        );
+        final entrada =
+            await _repository.obtenerPorAnimeId(anime.id);
+        if (!mounted) return;
+        setState(() => _entrada = entrada);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Agregado a tu biblioteca')),
+        );
+      } finally {
+        if (mounted) setState(() => _guardando = false);
+      }
+      return;
+    }
+
+    // Ya está: preguntar si quiere sacarlo.
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Quitar de la biblioteca'),
+        content: Text(
+          '¿Querés sacar "${_entrada!.tituloAnime}" de tu biblioteca?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Quitar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+
+    setState(() => _guardando = true);
+    try {
+      await _repository.eliminar(widget.animeId);
+      if (!mounted) return;
+      setState(() => _entrada = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Quitado de tu biblioteca')),
+      );
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
+  }
+
+  /// Marca el progreso hasta el episodio [numero].
+  ///
+  /// Si el anime no está en la biblioteca, primero lo agrega con ese
+  /// progreso. Todavía no hay reproductor: solo persiste `episodioActual`.
+  Future<void> _marcarEpisodio(int numero) async {
+    final anime = _anime;
+    if (anime == null || _guardando) return;
+    setState(() => _guardando = true);
+    try {
+      if (_entrada == null) {
+        await _repository.agregar(
+          EntradaBiblioteca(
+            animeId: anime.id,
+            tituloAnime: anime.tituloDisplay,
+            imagenPortada: anime.coverImageUrl,
+            episodiosTotales: anime.episodios,
+            episodioActual: numero,
+          ),
+        );
+      } else {
+        await _repository.actualizar(
+          _entrada!.copyWith(episodioActual: numero),
+        );
+      }
+      final entrada =
+          await _repository.obtenerPorAnimeId(widget.animeId);
+      if (!mounted) return;
+      setState(() => _entrada = entrada);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Marcado hasta el episodio $numero')),
+      );
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Helpers de presentación
+  // -----------------------------------------------------------------
+
+  static String textoEstado(String? status) {
+    switch (status) {
+      case 'FINISHED':
+        return 'Finalizado';
+      case 'RELEASING':
+        return 'En emisión';
+      case 'NOT_YET_RELEASED':
+        return 'Próximamente';
+      case 'CANCELLED':
+        return 'Cancelado';
+      case 'HIATUS':
+        return 'En pausa';
+      default:
+        return 'Desconocido';
+    }
+  }
+
+  static String limpiarDescripcion(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return 'Sin sinopsis disponible.';
+    }
+    var texto = raw.replaceAll(
+      RegExp(r'<br\s*/?>', caseSensitive: false),
+      '\n',
+    );
+    texto = texto.replaceAll(RegExp(r'<[^>]*>'), '');
+    texto = texto
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&nbsp;', ' ');
+    texto = texto.replaceAll(RegExp(r'\n\s*\n+'), '\n\n').trim();
+    if (texto.isEmpty) return 'Sin sinopsis disponible.';
+    return texto;
+  }
+
+  // -----------------------------------------------------------------
+  // UI
+  // -----------------------------------------------------------------
+
+  @override
+  Widget build(BuildContext context) {
+    final anime = _anime;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(anime?.tituloDisplay ?? 'Detalle'),
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_cargandoDetalle) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_errorDetalle != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off_outlined, size: 48),
+              const SizedBox(height: 12),
+              Text(_errorDetalle!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: _cargarDetalle,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    final anime = _anime;
+    if (anime == null) {
+      return const Center(child: Text('No se pudo cargar el anime.'));
+    }
+
+    final total = anime.episodios;
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: _buildHeader(anime)),
+        SliverToBoxAdapter(child: _buildAcciones(anime)),
+        SliverToBoxAdapter(child: _buildTituloEpisodios(anime)),
+        if (total == null || total <= 0)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
+              child: Text('Cantidad de episodios desconocida por ahora.'),
+            ),
+          )
+        else
+          SliverList.builder(
+            itemCount: total,
+            itemBuilder: (context, i) => _buildFilaEpisodio(i + 1),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(Anime anime) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AnimeCoverImage(
+            url: anime.coverImageUrl,
+            width: 140,
+            height: 200,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  anime.tituloDisplay,
+                  style: textTheme.headlineSmall,
+                ),
+                if (anime.generos.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: anime.generos
+                        .map((g) => Chip(
+                              label: Text(g),
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                            ))
+                        .toList(),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Text(
+                  limpiarDescripcion(anime.descripcion),
+                  style: textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          size: 16,
+                          color: Colors.amber,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          anime.averageScore != null
+                              ? '${anime.averageScore}'
+                              : '—',
+                          style: textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.tv_outlined,
+                          size: 16,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          anime.episodios != null
+                              ? '${anime.episodios} eps'
+                              : '? eps',
+                          style: textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          textoEstado(anime.status),
+                          style: textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAcciones(Anime anime) {
+    final enBiblioteca = _entrada != null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: _cargandoBiblioteca
+                ? const FilledButton(
+                    onPressed: null,
+                    child: Text('Cargando…'),
+                  )
+                : enBiblioteca
+                    ? OutlinedButton.icon(
+                        onPressed:
+                            _guardando ? null : _alternarBiblioteca,
+                        icon: const Icon(Icons.check),
+                        label: const Text('En mi biblioteca'),
+                      )
+                    : FilledButton.icon(
+                        onPressed:
+                            _guardando ? null : _alternarBiblioteca,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Agregar a mi biblioteca'),
+                      ),
+          ),
+          const SizedBox(width: 12),
+          IconButton(
+            tooltip: _esFavorito
+                ? 'Quitar de favoritos'
+                : 'Marcar como favorito',
+            isSelected: _esFavorito,
+            selectedIcon: const Icon(Icons.favorite, color: Colors.red),
+            icon: const Icon(Icons.favorite_outline),
+            onPressed: () => setState(
+              () => _esFavorito = !_esFavorito,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTituloEpisodios(Anime anime) {
+    final actual = _entrada?.episodioActual ?? 0;
+    final total = anime.episodios;
+    final subtitulo = total == null || total <= 0
+        ? null
+        : '$actual/$total vistos';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            'Episodios',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          if (subtitulo != null) ...[
+            const SizedBox(width: 8),
+            Text(
+              subtitulo,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilaEpisodio(int numero) {
+    final scheme = Theme.of(context).colorScheme;
+    final actual = _entrada?.episodioActual ?? 0;
+    final visto = numero <= actual;
+    final esProximo = numero == actual + 1;
+
+    final Widget iconoEstado;
+    if (visto) {
+      iconoEstado = const Icon(Icons.check_circle, color: Colors.green);
+    } else if (esProximo) {
+      iconoEstado = Icon(Icons.play_circle_fill, color: scheme.primary);
+    } else {
+      iconoEstado =
+          Icon(Icons.circle_outlined, color: scheme.onSurfaceVariant);
+    }
+
+    return ListTile(
+      key: ValueKey('episodio-$numero'),
+      tileColor: esProximo
+          ? scheme.primaryContainer.withValues(alpha: 0.35)
+          : null,
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      leading: iconoEstado,
+      title: Text('Episodio $numero'),
+      subtitle: visto
+          ? const Text('Visto')
+          : esProximo
+              ? Text(
+                  'Próximo a ver',
+                  style: TextStyle(color: scheme.primary),
+                )
+              : null,
+      trailing: IconButton(
+        tooltip: 'Marcar hasta acá',
+        icon: const Icon(Icons.play_arrow),
+        onPressed: _guardando ? null : () => _marcarEpisodio(numero),
+      ),
+    );
+  }
+}
